@@ -48,25 +48,30 @@
         }
         .settings-btn:active { transform: scale(0.9); }
 
-        .weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 12px; color: var(--text-muted); margin-bottom: 10px; }
+        .weekdays { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); text-align: center; font-size: 12px; color: var(--text-muted); margin-bottom: 10px; }
         .weekend-label { color: rgba(239, 68, 68, 0.7); }
 
-        /* Обрезка — ровно по краям viewport, без расширений */
+        /* ЖЕСТКОЕ ОБРЕЗАНИЕ ЧЕРЕЗ CLIP-PATH, чтобы Safari не оставлял полосок */
         .calendar-viewport {
             overflow: hidden;
             width: 100%;
             touch-action: pan-y;
             position: relative;
+            clip-path: inset(0);
+            -webkit-clip-path: inset(0);
         }
+        
+        /* Ширина трека ровно 300%, чтобы каждая сетка занимала 33.333% */
         .calendar-track {
             display: flex;
-            width: 100%;
+            width: 300%;
+            will-change: transform;
         }
         .calendar-track > .calendar-grid {
-            flex: 0 0 100%;
-            width: 100%;
+            flex: 0 0 33.333333%;
+            width: 33.333333%;
             display: grid;
-            grid-template-columns: repeat(7, 1fr);
+            grid-template-columns: repeat(7, minmax(0, 1fr));
             gap: 5px;
         }
 
@@ -85,6 +90,8 @@
             text-shadow: 0 1px 2px rgba(0,0,0,0.6);
             user-select: none;
             -webkit-user-select: none;
+            min-width: 0;
+            min-height: 0;
         }
         .day-cell.empty { pointer-events: none; }
         .day-cell.other-month {
@@ -96,7 +103,6 @@
         .day-cell:active:not(.empty):not(.other-month) { transform: scale(0.92); }
         .day-cell.weekend { background: rgba(239, 68, 68, 0.06); }
 
-        /* «Сегодня» — свечение внутри ячейки, ничего не обрезается */
         .day-cell.today {
             animation: todayPulse 2s ease-in-out infinite;
         }
@@ -688,10 +694,10 @@
             renderGrid(gridCur, currentYear, currentMonth, true);
             renderGrid(gridNext, nextDate.getFullYear(), nextDate.getMonth(), false);
 
-            // Сброс ленты в позицию «показан текущий месяц»
             const track = document.getElementById('calendarTrack');
             track.style.transition = 'none';
-            track.style.transform = 'translateX(-100%)';
+            currentOffset = -33.333333;
+            track.style.transform = `translateX(${currentOffset}%)`;
         }
 
         function renderGrid(gridEl, year, month, isActive) {
@@ -796,11 +802,12 @@
             panel.appendChild(totalBox);
         }
 
-        // ===== СВАЙП (лента из трёх сеток) =====
+        // ===== СВАЙП (проценты) =====
         let touchStartX = 0;
         let touchStartY = 0;
         let isSwiping = false;
         let lastSwipeTime = 0;
+        let currentOffset = -33.333333; // смещение одной сетки в %
 
         const viewportEl = document.getElementById('calendarViewport');
         const trackEl = document.getElementById('calendarTrack');
@@ -810,6 +817,7 @@
             touchStartY = e.touches[0].clientY;
             isSwiping = false;
             trackEl.style.transition = 'none';
+            trackEl.style.transform = `translateX(${currentOffset}%)`;
         }, { passive: true });
 
         viewportEl.addEventListener('touchmove', e => {
@@ -823,30 +831,45 @@
                     return;
                 }
             }
-            trackEl.style.transform = `translateX(calc(-100% + ${dx}px))`;
+            
+            const viewportWidth = viewportEl.offsetWidth;
+            // Переводим сдвиг пальца в проценты ширины трека
+            const dxPercent = (dx / viewportWidth) * 33.333333;
+            trackEl.style.transform = `translateX(${currentOffset + dxPercent}%)`;
         }, { passive: true });
 
         viewportEl.addEventListener('touchend', e => {
             if (!isSwiping) { isSwiping = false; return; }
 
             const dx = e.changedTouches[0].clientX - touchStartX;
-            const width = viewportEl.offsetWidth;
-            const threshold = width * 0.2;
+            const threshold = viewportEl.offsetWidth * 0.2;
 
-            if (Math.abs(dx) > threshold) {
+            if (dx > threshold) {
+                // Свайп вправо -> прошлый месяц
                 lastSwipeTime = Date.now();
-                const delta = dx > 0 ? -1 : 1;
                 trackEl.style.transition = 'transform 0.25s ease-out';
-                trackEl.style.transform = `translateX(${dx > 0 ? '0%' : '-200%'})`;
+                trackEl.style.transform = `translateX(0%)`;
+                currentOffset = 0;
                 setTimeout(() => {
-                    currentMonth += delta;
-                    if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+                    currentMonth -= 1;
                     if (currentMonth < 0) { currentMonth = 11; currentYear--; }
                     renderAll();
                 }, 250);
-            } else {
+            } else if (dx < -threshold) {
+                // Свайп влево -> следующий месяц
+                lastSwipeTime = Date.now();
                 trackEl.style.transition = 'transform 0.25s ease-out';
-                trackEl.style.transform = 'translateX(-100%)';
+                trackEl.style.transform = `translateX(-66.666666%)`;
+                currentOffset = -66.666666;
+                setTimeout(() => {
+                    currentMonth += 1;
+                    if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+                    renderAll();
+                }, 250);
+            } else {
+                // Возврат на место
+                trackEl.style.transition = 'transform 0.25s ease-out';
+                trackEl.style.transform = `translateX(${currentOffset}%)`;
             }
             isSwiping = false;
         });
@@ -854,7 +877,7 @@
         viewportEl.addEventListener('touchcancel', () => {
             isSwiping = false;
             trackEl.style.transition = 'transform 0.25s ease-out';
-            trackEl.style.transform = 'translateX(-100%)';
+            trackEl.style.transform = `translateX(${currentOffset}%)`;
         });
 
         // ===== МОДАЛКА ДНЯ =====
