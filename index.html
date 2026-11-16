@@ -56,7 +56,6 @@
         }
         .settings-btn:active { transform: scale(0.9); }
 
-        /* Жестко фиксируем 7 колонок с minmax(0, 1fr), чтобы ничего не вылезало за экран */
         .weekdays { 
             display: grid; 
             grid-template-columns: repeat(7, minmax(0, 1fr)); 
@@ -67,15 +66,15 @@
         }
         .weekend-label { color: rgba(239, 68, 68, 0.7); }
 
-        /* Контейнер, который скрывает выезжающую сетку */
+        /* Контейнер календаря. Обрезаем всё, что вылезает */
         .calendar-container {
             width: 100%;
             overflow: hidden;
-            touch-action: pan-y;
             position: relative;
+            touch-action: pan-y;
         }
 
-        /* Сетка, которая будет двигаться за пальцем */
+        /* Сетка, которая двигается за пальцем */
         .calendar-grid {
             display: grid;
             grid-template-columns: repeat(7, minmax(0, 1fr));
@@ -99,6 +98,8 @@
             text-shadow: 0 1px 2px rgba(0,0,0,0.6);
             user-select: none;
             -webkit-user-select: none;
+            min-width: 0;
+            min-height: 0;
         }
         .day-cell.empty { pointer-events: none; }
         .day-cell.other-month {
@@ -587,7 +588,10 @@
         let currentMonth = new Date().getMonth();
         let selectedDateStr = "";
         let shiftsData = JSON.parse(localStorage.getItem('shiftsData')) || {};
+        
+        // Восстановление данных
         shiftsData = migrateData(shiftsData);
+        saveShifts();
 
         let shiftTypes = JSON.parse(localStorage.getItem('shiftTypes') || 'null');
         if (!shiftTypes || !Array.isArray(shiftTypes) || shiftTypes.length === 0) {
@@ -610,7 +614,6 @@
             const b = parseInt(hex.slice(5,7), 16);
             return `rgba(${r},${g},${b},${alpha})`;
         }
-
         function parseTime(timeStr) {
             if (!timeStr) return null;
             let t = timeStr.trim().replace('.', ':');
@@ -627,44 +630,38 @@
             return { h, m };
         }
 
-        // УМНАЯ МИГРАЦИЯ: восстанавливаем суммы, если они потерялись при обновлениях
+        // ЖЕСТКАЯ МИГРАЦИЯ: принудительно считает суммы, если они пустые
         function migrateData(data) {
             for (const dateStr in data) {
                 const d = data[dateStr];
                 if (!d) continue;
                 
-                // Восстанавливаем почасовую сумму, если есть время и ставка
-                if (d.totalHourly === undefined) {
-                    if (d.startTime && d.endTime && d.rate) {
-                        const start = parseTime(d.startTime);
-                        const end = parseTime(d.endTime);
-                        if (start && end) {
-                            let diff = (end.h * 60 + end.m) - (start.h * 60 + start.m);
-                            if (diff < 0) diff += 24 * 60;
-                            d.hours = diff / 60;
-                            d.totalHourly = d.hours * d.rate;
-                        } else {
-                            d.totalHourly = d.total || 0;
+                if (d.types && d.types.includes('blue')) {
+                    if (!d.totalHourly || d.totalHourly === 0) {
+                        if (d.startTime && d.endTime && d.rate) {
+                            const start = parseTime(d.startTime);
+                            const end = parseTime(d.endTime);
+                            if (start && end) {
+                                let diff = (end.h * 60 + end.m) - (start.h * 60 + start.m);
+                                if (diff < 0) diff += 24 * 60;
+                                d.hours = diff / 60;
+                                d.totalHourly = d.hours * d.rate;
+                            }
                         }
-                    } else {
-                        d.totalHourly = d.total || 0;
                     }
                 }
                 
-                // Восстанавливаем сдельную долю, если есть сумма и кол-во людей
-                if (d.mySharePiece === undefined) {
-                    if (d.pieceSum && d.piecePeople) {
-                        const sum = parseFloat(d.pieceSum) || 0;
-                        const people = parseInt(d.piecePeople) || 1;
-                        d.mySharePiece = sum / people;
-                    } else {
-                        d.mySharePiece = d.myShare || 0;
+                if (d.types && (d.types.includes('red') || d.types.includes('green') || d.types.includes('orange'))) {
+                    if (!d.mySharePiece || d.mySharePiece === 0) {
+                        if (d.pieceSum && d.piecePeople) {
+                            const sum = parseFloat(d.pieceSum) || 0;
+                            const people = parseInt(d.piecePeople) || 1;
+                            if (sum > 0) d.mySharePiece = sum / people;
+                        }
                     }
                 }
                 
-                if (d.totalAmount === undefined) {
-                    d.totalAmount = (d.totalHourly || 0) + (d.mySharePiece || 0);
-                }
+                d.totalAmount = (d.totalHourly || 0) + (d.mySharePiece || 0);
             }
             return data;
         }
@@ -733,21 +730,23 @@
         function renderCalendar() {
             document.getElementById('currentMonth').innerText = monthNames[currentMonth] + " " + currentYear;
             const grid = document.getElementById('calendarGrid');
+            
+            // Очищаем и сбрасываем позицию
             grid.innerHTML = '';
-            // Сбрасываем возможные сдвиги после свайпа
             grid.style.transition = 'none';
-            grid.style.transform = 'translateX(0)';
+            grid.style.transform = 'translate3d(0, 0, 0)';
 
             const firstDay = new Date(currentYear, currentMonth, 1);
             const lastDay = new Date(currentYear, currentMonth + 1, 0);
             const daysInMonth = lastDay.getDate();
             
             let startDayOfWeek = firstDay.getDay(); 
-            if (startDayOfWeek === 0) startDayOfWeek = 7; // Воскресенье (0) -> 7
+            if (startDayOfWeek === 0) startDayOfWeek = 7; 
 
             const beforeCount = startDayOfWeek - 1;
             const prevLastDay = new Date(currentYear, currentMonth, 0).getDate();
             
+            // Заполняем пустые дни в начале
             for (let i = beforeCount; i >= 1; i--) {
                 const cell = document.createElement('div');
                 cell.className = 'day-cell other-month';
@@ -755,6 +754,7 @@
                 grid.appendChild(cell);
             }
 
+            // Заполняем текущий месяц
             for (let d = 1; d <= daysInMonth; d++) {
                 const cell = document.createElement('div');
                 cell.className = 'day-cell';
@@ -762,9 +762,7 @@
                 const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
                 const data = shiftsData[dateStr];
 
-                // Вычисляем день недели для правильной подсветки выходных
-                // 5 = Сб, 6 = Вс
-                const weekDay = (startDayOfWeek + d - 2) % 7;
+                const weekDay = (startDayOfWeek + d - 2) % 7; 
                 const isWeekend = weekDay === 5 || weekDay === 6;
                 if (isWeekend && !data) cell.classList.add('weekend');
 
@@ -801,6 +799,7 @@
                 grid.appendChild(cell);
             }
 
+            // Добиваем пустые ячейки в конце
             const totalCells = beforeCount + daysInMonth;
             const afterCount = (7 - (totalCells % 7)) % 7;
             for (let i = 1; i <= afterCount; i++) {
@@ -840,7 +839,7 @@
             panel.appendChild(totalBox);
         }
 
-        // ===== СВАЙП С ДВИЖЕНИЕМ ПАЛЬЦА (как в нативных приложениях) =====
+        // ===== СВАЙП (Нативный, по одной сетке) =====
         let touchStartX = 0;
         let touchStartY = 0;
         let isSwiping = false;
@@ -858,6 +857,7 @@
             const dx = e.touches[0].clientX - touchStartX;
             const dy = e.touches[0].clientY - touchStartY;
 
+            // Определяем, свайп это или скролл
             if (!isSwiping) {
                 if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 10) {
                     isSwiping = true;
@@ -865,60 +865,64 @@
                     return;
                 }
             }
-            gridEl.style.transform = `translateX(${dx}px)`;
+            // Двигаем сетку за пальцем
+            gridEl.style.transform = `translate3d(${dx}px, 0, 0)`;
         }, { passive: true });
 
         gridEl.addEventListener('touchend', e => {
             if (!isSwiping) { isSwiping = false; return; }
 
             const dx = e.changedTouches[0].clientX - touchStartX;
-            const threshold = window.innerWidth * 0.25;
+            const threshold = window.innerWidth * 0.25; // Порог свайпа
 
             if (dx > threshold) {
-                // Свайп вправо -> прошлый месяц
+                // Свайп ВПРАВО -> Прошлый месяц
                 lastSwipeTime = Date.now();
                 gridEl.style.transition = 'transform 0.25s ease-out';
-                gridEl.style.transform = `translateX(100%)`;
+                gridEl.style.transform = `translate3d(100%, 0, 0)`;
+                
                 setTimeout(() => {
                     currentMonth -= 1;
                     if (currentMonth < 0) { currentMonth = 11; currentYear--; }
                     renderAll();
                     
-                    // Мгновенно ставим новый месяц справа и выезжаем
+                    // Новый месяц появляется слева и выезжает в центр
                     gridEl.style.transition = 'none';
-                    gridEl.style.transform = `translateX(-100%)`;
-                    void gridEl.offsetWidth;
+                    gridEl.style.transform = `translate3d(-100%, 0, 0)`;
+                    void gridEl.offsetWidth; // Форсируем перерисовку
                     gridEl.style.transition = 'transform 0.25s ease-out';
-                    gridEl.style.transform = `translateX(0)`;
+                    gridEl.style.transform = `translate3d(0, 0, 0)`;
                 }, 250);
             } else if (dx < -threshold) {
-                // Свайп влево -> следующий месяц
+                // Свайп ВЛЕВО -> Следующий месяц
                 lastSwipeTime = Date.now();
                 gridEl.style.transition = 'transform 0.25s ease-out';
-                gridEl.style.transform = `translateX(-100%)`;
+                gridEl.style.transform = `translate3d(-100%, 0, 0)`;
+                
                 setTimeout(() => {
                     currentMonth += 1;
                     if (currentMonth > 11) { currentMonth = 0; currentYear++; }
                     renderAll();
                     
+                    // Новый месяц появляется справа и выезжает в центр
                     gridEl.style.transition = 'none';
-                    gridEl.style.transform = `translateX(100%)`;
+                    gridEl.style.transform = `translate3d(100%, 0, 0)`;
                     void gridEl.offsetWidth;
                     gridEl.style.transition = 'transform 0.25s ease-out';
-                    gridEl.style.transform = `translateX(0)`;
+                    gridEl.style.transform = `translate3d(0, 0, 0)`;
                 }, 250);
             } else {
-                // Возврат на место
+                // Возвращаем на место
                 gridEl.style.transition = 'transform 0.25s ease-out';
-                gridEl.style.transform = `translateX(0)`;
+                gridEl.style.transform = 'translate3d(0, 0, 0)';
             }
-            isSwipe = false;
+            isSwiping = false;
         });
 
         gridEl.addEventListener('touchcancel', () => {
             isSwiping = false;
             gridEl.style.transition = 'transform 0.25s ease-out';
-            gridEl.style.transform = `translateX(0)`;
+            gridEl.style.transform = 'translate3d(0, 0, 0)';
         });
 
         // ===== МОДАЛКА ДНЯ =====
@@ -1060,7 +1064,6 @@
                     data.hours = diff / 60;
                     data.totalHourly = data.hours * data.rate;
                 } else {
-                    // Подсказываем пользователю, почему сумма 0
                     showToast('Введи время начала и конца для расчета', 'info');
                 }
             }
@@ -1097,8 +1100,6 @@
                     if (!dateStr.startsWith(prefix)) continue;
                     const d = shiftsData[dateStr];
                     if (!d.types || !d.types.includes(type.id)) continue;
-                    
-                    // Берем сохраненную сумму ИЛИ считаем на лету, если поле потерялось
                     if (type.mode === 'hourly') sum += d.totalHourly || 0;
                     else if (type.mode === 'piece') sum += d.mySharePiece || 0;
                 }
