@@ -12,69 +12,177 @@
             --text-main: #ffffff;
             --text-muted: #888888;
             --border-color: #444444;
+            --accent: #0ea5e9;
+            --accent2: #a855f7;
+            --gradient: linear-gradient(135deg, #0ea5e9, #a855f7);
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { margin: 0; padding: 15px; font-family: -apple-system, BlinkMacSystemFont, sans-serif; background-color: var(--bg-color); color: var(--text-main); padding-bottom: 80px; }
+        body { margin: 0; padding: 15px; font-family: -apple-system, BlinkMacSystemFont, sans-serif; background-color: var(--bg-color); color: var(--text-main); padding-bottom: 80px; overflow-x: hidden; }
+
+        /* ===== HEADER ===== */
         .header { text-align: center; margin-bottom: 15px; }
-        .nav-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
-        .nav-btn { background: rgba(255,255,255,0.1); border: none; color: white; font-size: 18px; padding: 5px 15px; border-radius: 8px; cursor: pointer; }
-        .month-title { font-size: 20px; font-weight: bold; }
+        .month-title {
+            font-size: 26px;
+            font-weight: 800;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            user-select: none;
+            -webkit-user-select: none;
+        }
         .month-total-row { display: flex; justify-content: center; align-items: center; gap: 10px; }
-        .total-month { display: inline-block; background-color: rgba(255,255,255,0.1); padding: 4px 12px; border-radius: 20px; font-size: 14px; color: #ccc; }
+        .total-month { display: inline-block; background-color: rgba(255,255,255,0.08); padding: 5px 14px; border-radius: 20px; font-size: 14px; color: #ccc; border: 1px solid rgba(255,255,255,0.05); }
         .settings-btn {
-            background: rgba(255,255,255,0.1);
-            border: none;
+            background: var(--gradient);
             color: white;
-            padding: 6px 10px;
+            border: none;
+            padding: 8px 12px;
             border-radius: 20px;
             font-size: 16px;
             cursor: pointer;
+            box-shadow: 0 4px 12px rgba(14,165,233,0.3);
+            transition: transform 0.1s;
         }
-        .settings-btn:active { background: rgba(255,255,255,0.2); }
+        .settings-btn:active { transform: scale(0.9); }
+
+        /* ===== CALENDAR ===== */
         .weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 12px; color: var(--text-muted); margin-bottom: 10px; }
+        .weekend-label { color: rgba(239, 68, 68, 0.7); }
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; touch-action: pan-y; }
-        .day-cell { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 50%; font-size: 14px; cursor: pointer; position: relative; background-color: transparent; transition: all 0.2s; text-shadow: 0 1px 2px rgba(0,0,0,0.6); }
-        .day-cell.empty { pointer-events: none; }
-        @keyframes pulse {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(255,255,255,0.5); }
-            50% { box-shadow: 0 0 0 5px rgba(255,255,255,0); }
+        .calendar-grid.slide-in-left { animation: slideInLeft 0.3s ease-out; }
+        .calendar-grid.slide-in-right { animation: slideInRight 0.3s ease-out; }
+        @keyframes slideInLeft {
+            from { opacity: 0; transform: translateX(40px); }
+            to { opacity: 1; transform: translateX(0); }
         }
-        .day-cell.today { border: 2px solid white !important; animation: pulse 2s infinite; }
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(-40px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .day-cell {
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-size: 14px;
+            cursor: pointer;
+            position: relative;
+            background-color: transparent;
+            transition: transform 0.1s, background 0.2s;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        .day-cell.empty { pointer-events: none; }
+        .day-cell:active:not(.empty) { transform: scale(0.92); }
+        .day-cell.weekend { background: rgba(239, 68, 68, 0.06); }
+        .day-cell.today {
+            box-shadow: 0 0 0 2px var(--accent), 0 0 15px rgba(168,85,247,0.5);
+            animation: todayPulse 2s ease-in-out infinite;
+            z-index: 1;
+        }
+        @keyframes todayPulse {
+            0%, 100% { box-shadow: 0 0 0 2px var(--accent), 0 0 15px rgba(168,85,247,0.5); }
+            50% { box-shadow: 0 0 0 2px var(--accent2), 0 0 22px rgba(14,165,233,0.8); }
+        }
         .dots-container { display: flex; gap: 2px; position: absolute; bottom: 2px; }
         .dot { width: 4px; height: 4px; border-radius: 50%; }
-        .note-icon {
-            position: absolute;
-            top: -2px;
-            right: -2px;
-            font-size: 10px;
-            line-height: 1;
-            pointer-events: none;
+        .note-icon { position: absolute; top: -2px; right: -2px; font-size: 10px; line-height: 1; pointer-events: none; }
+
+        /* ===== BOTTOM PANEL ===== */
+        .bottom-panel {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(26, 26, 26, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255,255,255,0.08);
+            display: flex;
+            padding: 10px;
+            gap: 5px;
+            overflow-x: auto;
         }
-        .bottom-panel { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--bg-color); border-top: 1px solid #333; display: flex; padding: 10px; gap: 5px; overflow-x: auto; }
         .summary-box { flex: 0 0 auto; min-width: 70px; text-align: center; background: var(--card-bg); padding: 8px 5px; border-radius: 8px; cursor: pointer; transition: transform 0.1s, background 0.2s; user-select: none; -webkit-user-select: none; }
         .summary-box:hover { background: #333; }
         .summary-box:active { transform: scale(0.95); }
         .summary-title { font-size: 10px; color: var(--text-muted); white-space: nowrap; }
         .summary-value { font-size: 14px; font-weight: bold; margin-top: 2px; }
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center; padding: 15px; }
+
+        /* ===== MODALS (glassmorphism) ===== */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.55);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+        }
         .modal-overlay.active { display: flex; }
-        .modal { background: var(--card-bg); width: 100%; max-width: 400px; max-height: 90vh; overflow-y: auto; border-radius: 16px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        .modal {
+            background: rgba(30, 30, 40, 0.78);
+            backdrop-filter: blur(30px) saturate(160%);
+            -webkit-backdrop-filter: blur(30px) saturate(160%);
+            border: 1px solid rgba(255,255,255,0.08);
+            width: 100%;
+            max-width: 400px;
+            max-height: 90vh;
+            overflow-y: auto;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+        }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .modal-date { font-size: 20px; font-weight: bold; }
+        .btn-text { background: none; border: none; color: var(--text-muted); font-size: 18px; cursor: pointer; transition: transform 0.1s; }
+        .btn-text:active { transform: scale(0.9); }
+
+        /* ===== INPUTS ===== */
         .input-group { margin-bottom: 15px; position: relative; }
-        .input-group label { position: absolute; top: -8px; left: 10px; background: var(--card-bg); padding: 0 4px; font-size: 12px; color: var(--text-muted); }
-        .input-group input { width: 100%; background: transparent; border: 1px solid var(--border-color); color: white; padding: 12px; border-radius: 8px; font-size: 16px; outline: none; font-family: inherit; }
-        .input-group input:focus { border-color: #0ea5e9; }
+        .input-group label { position: absolute; top: -8px; left: 10px; background: rgba(30, 30, 40, 0.95); padding: 0 4px; font-size: 12px; color: var(--text-muted); }
+        .input-group input { width: 100%; background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); color: white; padding: 12px; border-radius: 8px; font-size: 16px; outline: none; font-family: inherit; }
+        .input-group input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(14,165,233,0.2); }
         .computed-sum { text-align: center; font-weight: bold; margin: 5px 0 15px 0; font-size: 14px; }
+
+        /* ===== TYPE BUTTONS ===== */
         .shift-types { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
-        .type-btn { flex: 1 1 30%; padding: 10px; background: transparent; border: 1px solid var(--border-color); color: white; border-radius: 8px; font-size: 14px; cursor: pointer; }
+        .type-btn { flex: 1 1 30%; padding: 10px; background: transparent; border: 1px solid var(--border-color); color: white; border-radius: 8px; font-size: 14px; cursor: pointer; transition: transform 0.1s; font-family: inherit; }
+        .type-btn:active { transform: scale(0.95); }
+
+        /* ===== MODAL ACTIONS ===== */
         .modal-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; }
-        .btn-text { background: none; border: none; color: var(--text-muted); font-size: 16px; cursor: pointer; }
-        .btn-save { background: #444; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: bold;}
-        .btn-delete { color: #ef4444; font-size: 16px; background: none; border: none; cursor: pointer; font-weight: bold;}
+        .btn-save {
+            background: var(--gradient);
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(14,165,233,0.3);
+            transition: transform 0.1s;
+            font-family: inherit;
+        }
+        .btn-save:active { transform: scale(0.95); }
+        .btn-delete { color: #ef4444; font-size: 16px; background: none; border: none; cursor: pointer; font-weight: bold; transition: transform 0.1s; font-family: inherit; }
+        .btn-delete:active { transform: scale(0.95); }
+
+        /* ===== TEMPLATES ===== */
         .template-btn {
             padding: 6px 10px;
-            background: rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.08);
             border: 1px solid var(--border-color);
             color: white;
             border-radius: 6px;
@@ -83,8 +191,9 @@
             user-select: none;
             -webkit-user-select: none;
             white-space: nowrap;
+            font-family: inherit;
         }
-        .template-btn:active { background: rgba(255,255,255,0.25); }
+        .template-btn:active { background: rgba(255,255,255,0.2); transform: scale(0.95); }
         .save-tpl-btn {
             display: block;
             width: 100%;
@@ -96,137 +205,223 @@
             border-radius: 8px;
             font-size: 13px;
             cursor: pointer;
+            font-family: inherit;
+            transition: transform 0.1s;
         }
+        .save-tpl-btn:active { transform: scale(0.97); }
+
+        /* ===== DETAILS ===== */
+        .detail-row { display: flex; justify-content: space-between; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 14px; gap: 10px; }
+        .detail-row:last-child { border-bottom: none; }
+        .detail-date { color: #ccc; font-weight: 500; }
+        .detail-sub { color: #888; font-size: 12px; margin-top: 3px; }
+        .detail-amount { font-weight: bold; color: #fff; white-space: nowrap; }
+        .details-total { margin-top: 15px; padding-top: 15px; border-top: 2px solid rgba(255,255,255,0.15); font-weight: bold; font-size: 16px; display: flex; justify-content: space-between; }
+        .empty-details { text-align: center; color: #888; padding: 30px 10px; font-size: 14px; }
+
+        /* ===== SETTINGS ===== */
+        .settings-section-title {
+            font-size: 12px;
+            font-weight: bold;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            margin-bottom: 10px;
+            margin-top: 18px;
+        }
+        .settings-section-title:first-child { margin-top: 0; }
+        .type-item { padding: 14px; border: 1px solid rgba(255,255,255,0.08); background: rgba(0,0,0,0.15); border-radius: 12px; margin-bottom: 12px; }
+        .type-item-header { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 10px; }
+        .type-name-input {
+            flex: 1;
+            background: rgba(0,0,0,0.25);
+            border: 1px solid var(--border-color);
+            color: white;
+            padding: 9px 10px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
+        }
+        .type-name-input:focus { border-color: var(--accent); }
+        .color-picker { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+        .color-dot {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: transform 0.1s, box-shadow 0.15s;
+        }
+        .color-dot:active { transform: scale(0.85); }
+        .color-dot.selected { border-color: white; box-shadow: 0 0 0 3px rgba(255,255,255,0.2); }
+
+        .segment-control { display: flex; background: rgba(0,0,0,0.3); border-radius: 10px; padding: 3px; gap: 3px; }
+        .segment-btn {
+            flex: 1;
+            padding: 9px 4px;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 11px;
+            border-radius: 7px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+            font-weight: 500;
+        }
+        .segment-btn:active { transform: scale(0.95); }
+        .segment-btn.active {
+            background: var(--gradient);
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(14,165,233,0.3);
+        }
+
+        .icon-delete { background: transparent; border: none; color: #ef4444; font-size: 18px; cursor: pointer; padding: 4px 8px; transition: transform 0.1s; }
+        .icon-delete:active { transform: scale(0.85); }
         .add-type-btn {
             display: block;
             width: 100%;
             padding: 12px;
             background: transparent;
-            border: 1px dashed #0ea5e9;
-            color: #0ea5e9;
+            border: 1px dashed var(--accent);
+            color: var(--accent);
             border-radius: 8px;
             font-size: 14px;
             cursor: pointer;
             margin-bottom: 10px;
-        }
-        .detail-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            padding: 10px 0;
-            border-bottom: 1px solid #333;
-            font-size: 14px;
-            gap: 10px;
-        }
-        .detail-row:last-child { border-bottom: none; }
-        .detail-date { color: #ccc; font-weight: 500; }
-        .detail-sub { color: #888; font-size: 12px; margin-top: 3px; }
-        .detail-amount { font-weight: bold; color: #fff; white-space: nowrap; }
-        .details-total {
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 2px solid #444;
-            font-weight: bold;
-            font-size: 16px;
-            display: flex;
-            justify-content: space-between;
-        }
-        .empty-details { text-align: center; color: #888; padding: 30px 10px; font-size: 14px; }
-        .type-item {
-            padding: 12px;
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            margin-bottom: 12px;
-        }
-        .type-item-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 10px;
-        }
-        .type-name-input {
-            flex: 1;
-            background: transparent;
-            border: 1px solid var(--border-color);
-            color: white;
-            padding: 8px 10px;
-            border-radius: 6px;
-            font-size: 14px;
             font-family: inherit;
-            outline: none;
-        }
-        .type-name-input:focus { border-color: #0ea5e9; }
-        .color-picker {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            margin-bottom: 10px;
-        }
-        .color-dot {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            cursor: pointer;
-            border: 2px solid transparent;
             transition: transform 0.1s;
         }
-        .color-dot:active { transform: scale(0.9); }
-        .color-dot.selected { border-color: white; box-shadow: 0 0 0 2px rgba(255,255,255,0.3); }
-        .type-mode-select {
-            width: 100%;
-            background: transparent;
-            border: 1px solid var(--border-color);
-            color: white;
-            padding: 8px 10px;
-            border-radius: 6px;
-            font-size: 14px;
-            font-family: inherit;
-            outline: none;
-            cursor: pointer;
-        }
-        .type-mode-select option { background: var(--card-bg); }
-        .icon-delete {
-            background: transparent;
-            border: none;
-            color: #ef4444;
-            font-size: 18px;
-            cursor: pointer;
-            padding: 4px 8px;
-        }
+        .add-type-btn:active { transform: scale(0.97); }
+
         .settings-sync-btn {
-            background: #0ea5e9;
+            background: var(--gradient);
             color: white;
             border: none;
             padding: 14px;
             width: 100%;
-            border-radius: 8px;
+            border-radius: 10px;
             font-size: 15px;
             font-weight: bold;
             cursor: pointer;
-            margin-top: 15px;
+            margin-top: 5px;
+            box-shadow: 0 4px 14px rgba(14,165,233,0.35);
+            font-family: inherit;
+            transition: transform 0.1s;
         }
+        .settings-sync-btn:active { transform: scale(0.97); }
         .settings-load-btn {
             background: transparent;
-            color: #0ea5e9;
-            border: 1px solid #0ea5e9;
+            color: var(--accent);
+            border: 1px solid var(--accent);
             padding: 12px;
             width: 100%;
-            border-radius: 8px;
+            border-radius: 10px;
             font-size: 14px;
             cursor: pointer;
             margin-top: 10px;
+            font-family: inherit;
+            transition: transform 0.1s;
         }
+        .settings-load-btn:active { transform: scale(0.97); }
+
+        /* ===== TOASTS ===== */
+        .toast-container {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 4000;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: center;
+            pointer-events: none;
+            width: 100%;
+            padding: 0 15px;
+        }
+        .toast {
+            background: rgba(30, 30, 40, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            animation: toastIn 0.3s ease-out;
+            max-width: 340px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        .toast-success { border-left: 3px solid #22c55e; }
+        .toast-error { border-left: 3px solid #ef4444; }
+        .toast-info { border-left: 3px solid #0ea5e9; }
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .toast-out { animation: toastOut 0.3s ease-in forwards; }
+        @keyframes toastOut {
+            to { opacity: 0; transform: translateY(20px); }
+        }
+
+        /* ===== CONFIRM ===== */
+        .confirm-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 3000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .confirm-overlay.active { opacity: 1; }
+        .confirm-box {
+            background: rgba(30, 30, 40, 0.9);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 24px;
+            max-width: 340px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+            transform: scale(0.9);
+            transition: transform 0.2s;
+        }
+        .confirm-overlay.active .confirm-box { transform: scale(1); }
+        .confirm-message { font-size: 15px; margin-bottom: 20px; line-height: 1.4; }
+        .confirm-actions { display: flex; gap: 8px; }
+        .confirm-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: inherit;
+            transition: transform 0.1s;
+        }
+        .confirm-btn:active { transform: scale(0.96); }
+        .confirm-cancel { background: rgba(255,255,255,0.1); color: white; }
+        .confirm-ok { background: var(--gradient); color: white; }
+        .confirm-ok.danger { background: linear-gradient(135deg, #ef4444, #dc2626); }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <div class="nav-container">
-            <button class="nav-btn" onclick="changeMonth(-1)">◀</button>
-            <div class="month-title" id="currentMonth">Месяц</div>
-            <button class="nav-btn" onclick="changeMonth(1)">▶</button>
-        </div>
+        <div class="month-title" id="currentMonth">Месяц</div>
         <div class="month-total-row">
             <div class="total-month" id="monthTotal">Общая: 0 р.</div>
             <button class="settings-btn" onclick="openSettings()">⚙️</button>
@@ -234,7 +429,8 @@
     </div>
 
     <div class="weekdays">
-        <div>Пн</div><div>Вт</div><div>Ср</div><div>Чт</div><div>Пт</div><div>Сб</div><div>Вс</div>
+        <div>Пн</div><div>Вт</div><div>Ср</div><div>Чт</div><div>Пт</div>
+        <div class="weekend-label">Сб</div><div class="weekend-label">Вс</div>
     </div>
     
     <div class="calendar-grid" id="calendarGrid"></div>
@@ -300,7 +496,7 @@
         </div>
     </div>
 
-    <!-- Модалка детализации по категории -->
+    <!-- Модалка детализации -->
     <div class="modal-overlay" id="detailsModal">
         <div class="modal">
             <div class="modal-header">
@@ -323,20 +519,18 @@
                 <button class="btn-text" onclick="closeSettings()">✖</button>
             </div>
 
-            <div style="font-size: 14px; font-weight: bold; margin-bottom: 12px;">Типы смен</div>
+            <div class="settings-section-title">💰 Типы смен</div>
             <div id="typesList"></div>
             <button class="add-type-btn" onclick="addType()">➕ Добавить тип смены</button>
             <button class="save-tpl-btn" onclick="resetTypes()">🔄 Сбросить к стандартным типам</button>
 
-            <div style="height: 1px; background: #444; margin: 20px 0;"></div>
-
+            <div class="settings-section-title">☁️ Синхронизация</div>
             <button class="settings-sync-btn" onclick="syncToCloud()">☁️ Сохранить всё в облако</button>
             <button class="settings-load-btn" onclick="loadFromCloud()">📥 Загрузить из облака</button>
         </div>
     </div>
 
     <script>
-        // --- ТИПЫ СМЕН ПО УМОЛЧАНИЮ ---
         const DEFAULT_TYPES = [
             { id: 'red',    name: 'Смена',    color: '#ef4444', mode: 'piece',  builtin: true },
             { id: 'blue',   name: 'Увязка',   color: '#0ea5e9', mode: 'hourly', builtin: true },
@@ -344,12 +538,10 @@
             { id: 'orange', name: 'Другая',   color: '#f97316', mode: 'piece',  builtin: true },
             { id: 'purple', name: 'Выходной', color: '#a855f7', mode: 'none',   builtin: true }
         ];
-
         const PALETTE = [
             '#ef4444', '#f97316', '#f59e0b', '#eab308', '#22c55e', '#10b981',
             '#06b6d4', '#0ea5e9', '#6366f1', '#a855f7', '#ec4899', '#888888'
         ];
-
         const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
 
         let currentYear = new Date().getFullYear();
@@ -368,14 +560,9 @@
         tg.expand();
         tg.ready();
 
-        // --- УТИЛИТЫ ---
-        function getType(id) {
-            return shiftTypes.find(t => t.id === id) || null;
-        }
-        function getTypeColor(id) {
-            const t = getType(id);
-            return t ? t.color : '#888888';
-        }
+        // ===== УТИЛИТЫ =====
+        function getType(id) { return shiftTypes.find(t => t.id === id) || null; }
+        function getTypeColor(id) { const t = getType(id); return t ? t.color : '#888888'; }
         function hexToRgba(hex, alpha) {
             if (!hex || hex.length < 7) return `rgba(136,136,136,${alpha})`;
             const r = parseInt(hex.slice(1,3), 16);
@@ -393,14 +580,56 @@
             }
             return data;
         }
-        function saveTypes() {
-            localStorage.setItem('shiftTypes', JSON.stringify(shiftTypes));
-        }
-        function saveShifts() {
-            localStorage.setItem('shiftsData', JSON.stringify(shiftsData));
+        function saveTypes() { localStorage.setItem('shiftTypes', JSON.stringify(shiftTypes)); }
+        function saveShifts() { localStorage.setItem('shiftsData', JSON.stringify(shiftsData)); }
+
+        // ===== TOASTS И CONFIRM =====
+        function showToast(message, type = 'success') {
+            let container = document.getElementById('toastContainer');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'toastContainer';
+                container.className = 'toast-container';
+                document.body.appendChild(container);
+            }
+            while (container.children.length >= 3) container.firstChild.remove();
+            const toast = document.createElement('div');
+            toast.className = 'toast toast-' + type;
+            toast.innerText = message;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.add('toast-out');
+                setTimeout(() => toast.remove(), 300);
+            }, 2200);
         }
 
-        // --- РЕНДЕР ---
+        function showConfirm(message, options = {}) {
+            return new Promise((resolve) => {
+                const overlay = document.createElement('div');
+                overlay.className = 'confirm-overlay';
+                overlay.innerHTML = `
+                    <div class="confirm-box">
+                        <div class="confirm-message">${message}</div>
+                        <div class="confirm-actions">
+                            <button class="confirm-btn confirm-cancel">${options.cancelText || 'Отмена'}</button>
+                            <button class="confirm-btn confirm-ok ${options.danger ? 'danger' : ''}">${options.okText || 'OK'}</button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(overlay);
+                requestAnimationFrame(() => overlay.classList.add('active'));
+                const close = (result) => {
+                    overlay.classList.remove('active');
+                    setTimeout(() => overlay.remove(), 200);
+                    resolve(result);
+                };
+                overlay.querySelector('.confirm-cancel').onclick = () => close(false);
+                overlay.querySelector('.confirm-ok').onclick = () => close(true);
+                overlay.onclick = (e) => { if (e.target === overlay) close(false); };
+            });
+        }
+
+        // ===== РЕНДЕР =====
         function renderAll() {
             renderCalendar();
             renderBottomPanel();
@@ -412,6 +641,14 @@
             if (currentMonth > 11) { currentMonth = 0; currentYear++; }
             if (currentMonth < 0) { currentMonth = 11; currentYear--; }
             renderCalendar();
+            animateGrid(delta);
+        }
+
+        function animateGrid(delta) {
+            const grid = document.getElementById('calendarGrid');
+            grid.classList.remove('slide-in-left', 'slide-in-right');
+            void grid.offsetWidth;
+            grid.classList.add(delta > 0 ? 'slide-in-left' : 'slide-in-right');
         }
 
         function renderCalendar() {
@@ -437,10 +674,13 @@
                 cell.innerText = d;
                 const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
                 const data = shiftsData[dateStr];
+
+                const weekDay = (startDayOfWeek + d - 2) % 7;
+                const isWeekend = weekDay === 5 || weekDay === 6;
+                if (isWeekend && !data) cell.classList.add('weekend');
                 
                 if (data && data.types && data.types.length > 0) {
                     const types = data.types;
-                    
                     if (types.length === 1) {
                         cell.style.background = hexToRgba(getTypeColor(types[0]), 0.35);
                         cell.style.border = '1px solid ' + getTypeColor(types[0]);
@@ -476,9 +716,9 @@
                     cell.classList.add('today');
                 }
 
-                cell.onclick = function() { 
-                    if (swiped) { swiped = false; return; }
-                    openModal(dateStr, d); 
+                cell.onclick = function() {
+                    if (Date.now() - lastSwipeTime < 300) return;
+                    openModal(dateStr, d);
                 };
                 grid.appendChild(cell);
             }
@@ -513,26 +753,25 @@
             panel.appendChild(totalBox);
         }
 
-        // --- СВАЙП МЕСЯЦЕВ ---
+        // ===== СВАЙП =====
         let touchStartX = 0;
         let touchStartY = 0;
-        let swiped = false;
+        let lastSwipeTime = 0;
         const gridEl = document.getElementById('calendarGrid');
         gridEl.addEventListener('touchstart', e => {
             touchStartX = e.changedTouches[0].screenX;
             touchStartY = e.changedTouches[0].screenY;
-            swiped = false;
         }, { passive: true });
         gridEl.addEventListener('touchend', e => {
             const dx = e.changedTouches[0].screenX - touchStartX;
             const dy = e.changedTouches[0].screenY - touchStartY;
             if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) {
-                swiped = true;
+                lastSwipeTime = Date.now();
                 changeMonth(dx > 0 ? -1 : 1);
             }
         }, { passive: true });
 
-        // --- МОДАЛКА ДНЯ ---
+        // ===== МОДАЛКА ДНЯ =====
         function openModal(dateStr, dayNum) {
             selectedDateStr = dateStr;
             document.getElementById('modalDate').innerText = `${dayNum} ${monthNames[currentMonth].toLowerCase()}`;
@@ -655,7 +894,7 @@
 
         function saveShift() {
             const activeIds = Array.from(document.querySelectorAll('.type-btn.active')).map(b => b.dataset.type);
-            if (activeIds.length === 0) { alert("Выберите хотя бы один тип смены!"); return; }
+            if (activeIds.length === 0) { showToast('Выбери хотя бы один тип смены', 'error'); return; }
 
             const activeTypes = activeIds.map(id => getType(id)).filter(Boolean);
             const hasHourly = activeTypes.some(t => t.mode === 'hourly');
@@ -685,13 +924,11 @@
                     data.totalHourly = data.hours * data.rate;
                 }
             }
-
             if (hasPiece) {
                 const sum = parseFloat(data.pieceSum) || 0;
                 const people = parseInt(data.piecePeople) || 1;
                 if (sum > 0) data.mySharePiece = sum / people;
             }
-
             data.totalAmount = data.totalHourly + data.mySharePiece;
 
             shiftsData[selectedDateStr] = data;
@@ -700,13 +937,14 @@
             renderAll();
         }
 
-        function deleteShift() {
-            if (confirm("Удалить смену за этот день?")) {
-                delete shiftsData[selectedDateStr];
-                saveShifts();
-                closeModal();
-                renderAll();
-            }
+        async function deleteShift() {
+            const ok = await showConfirm("Удалить смену за этот день?", { danger: true, okText: 'Удалить' });
+            if (!ok) return;
+            delete shiftsData[selectedDateStr];
+            saveShifts();
+            closeModal();
+            renderAll();
+            showToast('Смена удалена', 'info');
         }
 
         function updateSummary() {
@@ -736,7 +974,7 @@
             document.getElementById('monthTotal').innerText = `Общая: ${total.toFixed(2)} р.`;
         }
 
-        // --- ДЕТАЛИЗАЦИЯ ---
+        // ===== ДЕТАЛИЗАЦИЯ =====
         function openDetails(typeId) {
             const prefix = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
             let title = '';
@@ -810,24 +1048,16 @@
             document.getElementById('detailsModal').classList.remove('active');
         }
 
-        // --- ШАБЛОНЫ ---
-        function getTemplates() {
-            return JSON.parse(localStorage.getItem('shiftTemplates') || '[]');
-        }
-        function setTemplates(list) {
-            localStorage.setItem('shiftTemplates', JSON.stringify(list));
-        }
+        // ===== ШАБЛОНЫ =====
+        function getTemplates() { return JSON.parse(localStorage.getItem('shiftTemplates') || '[]'); }
+        function setTemplates(list) { localStorage.setItem('shiftTemplates', JSON.stringify(list)); }
 
         function renderTemplates() {
             const templates = getTemplates();
             const section = document.getElementById('templatesSection');
             const container = document.getElementById('templatesList');
             container.innerHTML = '';
-
-            if (templates.length === 0) {
-                section.style.display = 'none';
-                return;
-            }
+            if (templates.length === 0) { section.style.display = 'none'; return; }
             section.style.display = 'block';
 
             templates.forEach((tpl, idx) => {
@@ -837,15 +1067,15 @@
                 btn.onclick = () => applyTemplate(idx);
 
                 let pressTimer = null;
-                btn.addEventListener('touchstart', () => {
+                const startPress = () => {
                     pressTimer = setTimeout(() => { pressTimer = null; deleteTemplate(idx); }, 700);
-                }, { passive: true });
-                btn.addEventListener('touchend', () => { if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; } });
-                btn.addEventListener('touchmove', () => { if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; } });
-                btn.addEventListener('mousedown', () => {
-                    pressTimer = setTimeout(() => { pressTimer = null; deleteTemplate(idx); }, 700);
-                });
-                btn.addEventListener('mouseup', () => { if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; } });
+                };
+                const cancelPress = () => { if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; } };
+                btn.addEventListener('touchstart', startPress, { passive: true });
+                btn.addEventListener('touchend', cancelPress);
+                btn.addEventListener('touchmove', cancelPress);
+                btn.addEventListener('mousedown', startPress);
+                btn.addEventListener('mouseup', cancelPress);
 
                 container.appendChild(btn);
             });
@@ -866,10 +1096,7 @@
                 if (btn) {
                     btn.classList.add('active');
                     const type = getType(tId);
-                    if (type) {
-                        btn.style.background = type.color;
-                        btn.style.borderColor = type.color;
-                    }
+                    if (type) { btn.style.background = type.color; btn.style.borderColor = type.color; }
                 }
             });
 
@@ -884,9 +1111,9 @@
             calculatePiece();
         }
 
-        function saveAsTemplate() {
+        async function saveAsTemplate() {
             const activeIds = Array.from(document.querySelectorAll('.type-btn.active')).map(b => b.dataset.type);
-            if (activeIds.length === 0) { alert('Сначала выбери хотя бы один тип смены'); return; }
+            if (activeIds.length === 0) { showToast('Сначала выбери хотя бы один тип смены', 'error'); return; }
 
             const name = prompt('Название шаблона:', 'Мой шаблон');
             if (!name || !name.trim()) return;
@@ -904,25 +1131,28 @@
             const templates = getTemplates();
             const existingIdx = templates.findIndex(t => t.name === newTpl.name);
             if (existingIdx >= 0) {
-                if (confirm('Шаблон с таким именем уже есть. Перезаписать?')) templates[existingIdx] = newTpl;
-                else return;
+                const ok = await showConfirm('Шаблон с таким именем уже есть. Перезаписать?');
+                if (!ok) return;
+                templates[existingIdx] = newTpl;
             } else {
                 templates.push(newTpl);
             }
             setTemplates(templates);
             renderTemplates();
-            tg.showAlert('Шаблон сохранён!');
+            showToast('Шаблон сохранён!');
         }
 
-        function deleteTemplate(idx) {
-            if (!confirm('Удалить этот шаблон?')) return;
+        async function deleteTemplate(idx) {
+            const ok = await showConfirm('Удалить этот шаблон?', { danger: true, okText: 'Удалить' });
+            if (!ok) return;
             const templates = getTemplates();
             templates.splice(idx, 1);
             setTemplates(templates);
             renderTemplates();
+            showToast('Шаблон удалён', 'info');
         }
 
-        // --- НАСТРОЙКИ ---
+        // ===== НАСТРОЙКИ =====
         function openSettings() {
             renderSettingsTypes();
             document.getElementById('settingsModal').classList.add('active');
@@ -945,8 +1175,13 @@
                 const nameInput = document.createElement('input');
                 nameInput.className = 'type-name-input';
                 nameInput.value = type.name;
-                nameInput.onchange = () => updateTypeName(type.id, nameInput.value);
-
+                nameInput.oninput = () => {
+                    type.name = nameInput.value.trim() || 'Без названия';
+                    saveTypes();
+                    renderCalendar();
+                    renderBottomPanel();
+                    updateSummary();
+                };
                 header.appendChild(nameInput);
 
                 if (!type.builtin) {
@@ -956,7 +1191,6 @@
                     delBtn.onclick = () => deleteType(type.id);
                     header.appendChild(delBtn);
                 }
-
                 item.appendChild(header);
 
                 const picker = document.createElement('div');
@@ -966,50 +1200,37 @@
                     dot.className = 'color-dot';
                     dot.style.background = c;
                     if (c === type.color) dot.classList.add('selected');
-                    dot.onclick = () => setTypeColor(type.id, c);
+                    dot.onclick = () => {
+                        type.color = c;
+                        saveTypes();
+                        renderCalendar();
+                        renderBottomPanel();
+                        updateSummary();
+                        renderSettingsTypes();
+                    };
                     picker.appendChild(dot);
                 });
                 item.appendChild(picker);
 
-                const select = document.createElement('select');
-                select.className = 'type-mode-select';
-                select.innerHTML = `
-                    <option value="hourly">Почасовой (время + ставка)</option>
-                    <option value="piece">Сдельный (сумма / люди)</option>
-                    <option value="none">Без оплаты (выходной)</option>
-                `;
-                select.value = type.mode;
-                select.onchange = () => setTypeMode(type.id, select.value);
-                item.appendChild(select);
+                const segment = document.createElement('div');
+                segment.className = 'segment-control';
+                const modeLabels = { hourly: 'Почасовой', piece: 'Сдельный', none: 'Без оплаты' };
+                ['hourly', 'piece', 'none'].forEach(mode => {
+                    const btn = document.createElement('button');
+                    btn.className = 'segment-btn' + (type.mode === mode ? ' active' : '');
+                    btn.innerText = modeLabels[mode];
+                    btn.onclick = () => {
+                        type.mode = mode;
+                        saveTypes();
+                        renderAll();
+                        renderSettingsTypes();
+                    };
+                    segment.appendChild(btn);
+                });
+                item.appendChild(segment);
 
                 list.appendChild(item);
             });
-        }
-
-        function updateTypeName(id, name) {
-            const t = getType(id);
-            if (!t) return;
-            t.name = name.trim() || t.name;
-            saveTypes();
-            renderAll();
-            renderSettingsTypes();
-        }
-
-        function setTypeColor(id, color) {
-            const t = getType(id);
-            if (!t) return;
-            t.color = color;
-            saveTypes();
-            renderAll();
-            renderSettingsTypes();
-        }
-
-        function setTypeMode(id, mode) {
-            const t = getType(id);
-            if (!t) return;
-            t.mode = mode;
-            saveTypes();
-            renderAll();
         }
 
         function addType() {
@@ -1020,30 +1241,33 @@
             saveTypes();
             renderSettingsTypes();
             renderAll();
+            showToast('Тип добавлен');
         }
 
-        function deleteType(id) {
-            if (!confirm('Удалить этот тип? Дни, где он использовался, останутся, но тип пропадёт из списка и панели.')) return;
+        async function deleteType(id) {
+            const ok = await showConfirm('Удалить этот тип? Дни, где он использовался, останутся, но тип пропадёт из списка и панели.', { danger: true, okText: 'Удалить' });
+            if (!ok) return;
             shiftTypes = shiftTypes.filter(t => t.id !== id);
             saveTypes();
             renderSettingsTypes();
             renderAll();
+            showToast('Тип удалён', 'info');
         }
 
-        function resetTypes() {
-            if (!confirm('Сбросить все типы к стандартным? Кастомные типы будут удалены, цвета сброшены.')) return;
+        async function resetTypes() {
+            const ok = await showConfirm('Сбросить все типы к стандартным? Кастомные типы будут удалены, цвета сброшены.', { danger: true, okText: 'Сбросить' });
+            if (!ok) return;
             shiftTypes = JSON.parse(JSON.stringify(DEFAULT_TYPES));
             saveTypes();
             renderSettingsTypes();
             renderAll();
+            showToast('Типы сброшены', 'info');
         }
 
-        // --- ОБЛАКО ---
+        // ===== ОБЛАКО =====
         function cloudSet(key, value) {
             return new Promise((resolve, reject) => {
-                tg.CloudStorage.setItem(key, value, (err, ok) => {
-                    if (err) reject(err); else resolve(ok);
-                });
+                tg.CloudStorage.setItem(key, value, (err, ok) => { if (err) reject(err); else resolve(ok); });
             });
         }
         function cloudGet(key) {
@@ -1057,38 +1281,31 @@
                 await cloudSet('shiftsData', JSON.stringify(shiftsData));
                 await cloudSet('shiftTypes', JSON.stringify(shiftTypes));
                 await cloudSet('shiftTemplates', localStorage.getItem('shiftTemplates') || '[]');
-                tg.showAlert('Всё сохранено в облако Telegram!');
+                showToast('Всё сохранено в облако');
             } catch (e) {
-                tg.showAlert('Ошибка сохранения: ' + (e && e.message ? e.message : 'неизвестно'));
+                showToast('Ошибка сохранения: ' + (e && e.message ? e.message : 'неизвестно'), 'error');
             }
         }
 
         async function loadFromCloud() {
-            if (!confirm('Загрузить данные из облака? Локальные данные будут перезаписаны.')) return;
+            const ok = await showConfirm('Загрузить данные из облака? Локальные данные будут перезаписаны.');
+            if (!ok) return;
             try {
                 const dataStr = await cloudGet('shiftsData');
                 const typesStr = await cloudGet('shiftTypes');
                 const tplStr = await cloudGet('shiftTemplates');
-                if (dataStr) {
-                    shiftsData = migrateData(JSON.parse(dataStr));
-                    saveShifts();
-                }
-                if (typesStr) {
-                    shiftTypes = JSON.parse(typesStr);
-                    saveTypes();
-                }
-                if (tplStr) {
-                    localStorage.setItem('shiftTemplates', tplStr);
-                }
+                if (dataStr) { shiftsData = migrateData(JSON.parse(dataStr)); saveShifts(); }
+                if (typesStr) { shiftTypes = JSON.parse(typesStr); saveTypes(); }
+                if (tplStr) { localStorage.setItem('shiftTemplates', tplStr); }
                 renderAll();
                 renderSettingsTypes();
-                tg.showAlert('Загружено из облака!');
+                showToast('Загружено из облака');
             } catch (e) {
-                tg.showAlert('Ошибка загрузки: ' + (e && e.message ? e.message : 'неизвестно'));
+                showToast('Ошибка загрузки: ' + (e && e.message ? e.message : 'неизвестно'), 'error');
             }
         }
 
-        // --- СТАРТ ---
+        // ===== СТАРТ =====
         renderBottomPanel();
         renderCalendar();
         updateSummary();
@@ -1098,17 +1315,9 @@
                 const dataStr = await cloudGet('shiftsData');
                 const typesStr = await cloudGet('shiftTypes');
                 const tplStr = await cloudGet('shiftTemplates');
-                if (dataStr) {
-                    shiftsData = migrateData(JSON.parse(dataStr));
-                    saveShifts();
-                }
-                if (typesStr) {
-                    shiftTypes = JSON.parse(typesStr);
-                    saveTypes();
-                }
-                if (tplStr) {
-                    localStorage.setItem('shiftTemplates', tplStr);
-                }
+                if (dataStr) { shiftsData = migrateData(JSON.parse(dataStr)); saveShifts(); }
+                if (typesStr) { shiftTypes = JSON.parse(typesStr); saveTypes(); }
+                if (tplStr) { localStorage.setItem('shiftTemplates', tplStr); }
             } catch (e) {
                 console.error('Ошибка загрузки из облака', e);
             }
