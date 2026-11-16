@@ -85,7 +85,7 @@
     <div class="calendar-grid" id="calendarGrid"></div>
 
     <!-- Кнопка синхронизации (перенесена вниз под календарь, чтобы не мешала) -->
-    <button class="sync-btn" onclick="syncToBot()">☁️ Сохранить в облако (в бота)</button>
+    <button class="sync-btn" onclick="syncToCloud()">☁️ Сохранить в облако Telegram</button>
 
     <div class="bottom-panel">
         <div class="summary-box"><div class="summary-title">Смена</div><div class="summary-value red" id="sumDay">0,0</div></div>
@@ -383,28 +383,29 @@
             document.getElementById('monthTotal').innerText = `Общая: ${total.toFixed(2)} р.`;
         }
 
-        // --- СИНХРОНИЗАЦИЯ С БОТОМ ---
-        function syncToBot() {
-            // Внимание: для локального теста
-            fetch('http://localhost:8080/api/shifts', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(shiftsData)
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'ok') {
-                    tg.showAlert("Данные успешно сохранены в бота!");
+        // --- СИНХРОНИЗАЦИЯ С ОБЛАКОМ TELEGRAM ---
+        function syncToCloud() {
+            tg.CloudStorage.setItem('shiftsData', JSON.stringify(shiftsData), (err, ok) => {
+                if (ok) {
+                    tg.showAlert('Сохранено в облако Telegram!');
                 } else {
-                    tg.showAlert("Ошибка: " + data.message);
+                    tg.showAlert('Ошибка сохранения: ' + (err ? err.message : 'неизвестно'));
                 }
-            })
-            .catch(error => {
-                tg.showAlert("Ошибка сети! Убедись, что бот запущен на компьютере.");
             });
         }
 
-        renderCalendar();
+        // --- ЗАГРУЗКА ИЗ ОБЛАКА ПРИ СТАРТЕ ---
+        tg.CloudStorage.getItem('shiftsData', (err, value) => {
+            if (value) {
+                try {
+                    shiftsData = JSON.parse(value);
+                    localStorage.setItem('shiftsData', JSON.stringify(shiftsData));
+                } catch (e) {
+                    console.error('Ошибка парсинга данных из облака', e);
+                }
+            }
+            renderCalendar();
+        });
     </script>
 </body>
 </html>
