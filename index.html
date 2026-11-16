@@ -6,589 +6,170 @@
     <title>Календарь Смен</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root {
-            --bg-color: #1a1a1a;
-            --card-bg: #2a2a2a;
-            --text-main: #ffffff;
-            --text-muted: #888888;
-            --accent-blue: #0ea5e9;
-            --accent-red: #ef4444;
-            --accent-green: #22c55e;
-            --accent-orange: #f97316;
-            --accent-purple: #a855f7;
-            --border-color: #444444;
-        }
-
-        * {
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
-
         body {
             margin: 0;
             padding: 15px;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #1a1a1a;
+            color: #ffffff;
             padding-bottom: 80px;
         }
-
-        /* --- Шапка --- */
-        .header {
-            text-align: center;
-            margin-bottom: 15px;
-            position: relative;
-        }
-        .nav-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 5px;
-        }
-        .nav-btn {
-            background: rgba(255,255,255,0.1);
-            border: none;
-            color: white;
-            font-size: 18px;
-            padding: 5px 15px;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-        .month-title {
-            font-size: 20px;
-            font-weight: bold;
-        }
-        .total-month {
-            display: inline-block;
-            background-color: rgba(255,255,255,0.1);
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 14px;
-            color: #ccc;
-        }
-
-        /* --- Календарь --- */
-        .weekdays {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            text-align: center;
-            font-size: 12px;
-            color: var(--text-muted);
-            margin-bottom: 10px;
-        }
+        .header { text-align: center; margin-bottom: 15px; }
+        .nav-btn { background: #333; color: white; border: none; padding: 5px 15px; border-radius: 8px; font-size: 18px; margin: 0 10px;}
+        .month-title { font-size: 20px; font-weight: bold; display: inline-block;}
+        
         .calendar-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
             gap: 5px;
+            margin-top: 10px;
         }
         .day-cell {
             aspect-ratio: 1;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
             border-radius: 50%;
             font-size: 14px;
+            background-color: #2a2a2a;
             cursor: pointer;
-            position: relative;
-            background-color: transparent;
-            transition: all 0.2s;
         }
-        .day-cell.empty {
-            pointer-events: none;
-        }
-        
-        /* Цвета кружков */
-        .day-cell.shift-red { background-color: rgba(239, 68, 68, 0.2); color: #fff; border: 1px solid #ef4444; }
-        .day-cell.shift-blue { background-color: rgba(14, 165, 233, 0.2); color: #fff; border: 1px solid #0ea5e9; }
-        .day-cell.shift-green { background-color: rgba(34, 197, 94, 0.2); color: #fff; border: 1px solid #22c55e; }
-        .day-cell.shift-orange { background-color: rgba(249, 115, 22, 0.2); color: #fff; border: 1px solid #f97316; }
-        .day-cell.shift-purple { background-color: rgba(168, 85, 247, 0.2); color: #fff; border: 1px solid #a855f7; }
-        
-        .day-cell.today { border: 2px solid white; }
-        
-        /* Точки внутри дня */
-        .dots-container {
-            display: flex;
-            gap: 2px;
-            position: absolute;
-            bottom: 2px;
-        }
-        .dot { width: 4px; height: 4px; border-radius: 50%; }
-        .dot.red { background: var(--accent-red); }
-        .dot.blue { background: var(--accent-blue); }
-        .dot.green { background: var(--accent-green); }
-        .dot.orange { background: var(--accent-orange); }
-        .dot.purple { background: var(--accent-purple); }
+        .day-cell.empty { background-color: transparent; pointer-events: none; }
+        .day-cell.active { background-color: #0ea5e9; } /* Синий цвет для смен */
 
-        /* --- Нижняя панель --- */
-        .bottom-panel {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background: var(--bg-color);
-            border-top: 1px solid #333;
-            display: flex;
-            padding: 10px;
-            gap: 5px;
-            overflow-x: auto;
-        }
-        .summary-box {
-            flex: 1;
-            text-align: center;
-            background: var(--card-bg);
-            padding: 8px 5px;
-            border-radius: 8px;
-            min-width: 70px;
-        }
-        .summary-title { font-size: 10px; color: var(--text-muted); }
-        .summary-value { font-size: 14px; font-weight: bold; margin-top: 2px; }
-        .summary-value.red { color: var(--accent-red); }
-        .summary-value.blue { color: var(--accent-blue); }
-        .summary-value.green { color: var(--accent-green); }
-        .summary-value.orange { color: var(--accent-orange); }
-
-        /* --- Модальное окно --- */
+        /* Модальное окно */
         .modal-overlay {
             display: none;
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.7);
+            background: rgba(0,0,0,0.8);
             z-index: 1000;
             justify-content: center;
             align-items: center;
-            padding: 15px;
+            padding: 20px;
         }
         .modal-overlay.active { display: flex; }
-        
         .modal {
-            background: var(--card-bg);
+            background: #2a2a2a;
             width: 100%;
-            max-width: 400px;
-            max-height: 90vh;
-            overflow-y: auto;
+            max-width: 350px;
             border-radius: 16px;
             padding: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
         }
-        
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        .modal-date { font-size: 20px; font-weight: bold; }
-        
-        .input-group {
-            margin-bottom: 15px;
-            position: relative;
-        }
-        .input-group label {
-            position: absolute;
-            top: -8px;
-            left: 10px;
-            background: var(--card-bg);
-            padding: 0 4px;
-            font-size: 12px;
-            color: var(--text-muted);
-        }
-        .input-group input {
+        .modal h2 { margin-top: 0; font-size: 18px; }
+        .btn {
+            display: block;
             width: 100%;
-            background: transparent;
-            border: 1px solid var(--border-color);
-            color: white;
             padding: 12px;
+            margin-top: 10px;
+            background: #444;
+            color: white;
+            border: none;
             border-radius: 8px;
             font-size: 16px;
-            outline: none;
-            font-family: inherit;
         }
-        .input-group input:focus { border-color: var(--accent-blue); }
-
-        .computed-sum {
-            text-align: center;
-            font-weight: bold;
-            margin: 5px 0 15px 0;
-            font-size: 14px;
-        }
-
-        .shift-types {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-bottom: 20px;
-        }
-        .type-btn {
-            flex: 1 1 30%;
-            padding: 10px;
-            background: transparent;
-            border: 1px solid var(--border-color);
-            color: white;
-            border-radius: 8px;
-            font-size: 14px;
-            cursor: pointer;
-        }
-        .type-btn.active { background: var(--accent-red); border-color: var(--accent-red); }
-        .type-btn.active[data-type="blue"] { background: var(--accent-blue); border-color: var(--accent-blue); }
-        .type-btn.active[data-type="green"] { background: var(--accent-green); border-color: var(--accent-green); }
-        .type-btn.active[data-type="orange"] { background: var(--accent-orange); border-color: var(--accent-orange); }
-        .type-btn.active[data-type="purple"] { background: var(--accent-purple); border-color: var(--accent-purple); }
-
-        .modal-actions {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 20px;
-        }
-        .btn-text { background: none; border: none; color: var(--text-muted); font-size: 16px; cursor: pointer; }
-        .btn-save { background: #444; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: bold;}
-        .btn-delete { color: var(--accent-red); font-size: 16px; background: none; border: none; cursor: pointer; font-weight: bold;}
+        .btn-save { background: #22c55e; }
+        .btn-close { background: #ef4444; }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <div class="nav-container">
-            <button class="nav-btn" onclick="changeMonth(-1)">◀</button>
-            <div class="month-title" id="currentMonth">Месяц</div>
-            <button class="nav-btn" onclick="changeMonth(1)">▶</button>
-        </div>
-        <div class="total-month" id="monthTotal">Общая: 0 р.</div>
+        <button class="nav-btn" onclick="changeMonth(-1)">◀</button>
+        <span class="month-title" id="currentMonth">Ноябрь 2026</span>
+        <button class="nav-btn" onclick="changeMonth(1)">▶</button>
     </div>
 
-    <div class="weekdays">
-        <div>Пн</div><div>Вт</div><div>Ср</div><div>Чт</div><div>Пт</div><div>Сб</div><div>Вс</div>
-    </div>
-    
-    <div class="calendar-grid" id="calendarGrid">
-        <!-- Дни генерируются JS -->
-    </div>
+    <div class="calendar-grid" id="calendarGrid"></div>
 
-    <!-- Нижняя панель (Итоги) -->
-    <div class="bottom-panel">
-        <div class="summary-box">
-            <div class="summary-title">Смена</div>
-            <div class="summary-value red" id="sumDay">0,0</div>
-        </div>
-        <div class="summary-box">
-            <div class="summary-title">Увязка</div>
-            <div class="summary-value blue" id="sumHourly">0,0</div>
-        </div>
-        <div class="summary-box">
-            <div class="summary-title">Ночь</div>
-            <div class="summary-value green" id="sumNight">0,0</div>
-        </div>
-        <div class="summary-box">
-            <div class="summary-title">Другая</div>
-            <div class="summary-value orange" id="sumOther">0,0</div>
-        </div>
-        <div class="summary-box">
-            <div class="summary-title">Всего</div>
-            <div class="summary-value" id="sumTotal">0,0</div>
-        </div>
-    </div>
-
-    <!-- Модальное окно -->
     <div class="modal-overlay" id="modal">
         <div class="modal">
-            <div class="modal-header">
-                <div class="modal-date" id="modalDate">10 ноября</div>
-                <button class="btn-text" onclick="closeModal()">✖</button>
-            </div>
-
-            <div class="input-group">
-                <label>Заметка</label>
-                <input type="text" id="noteInput" placeholder="Введите текст...">
-            </div>
-
-            <div style="font-size: 14px; margin-bottom: 10px; font-weight: bold;">Тип смены (можно несколько):</div>
-            <div class="shift-types">
-                <button class="type-btn" data-type="red" onclick="toggleType(this)">Смена</button>
-                <button class="type-btn" data-type="blue" onclick="toggleType(this)">Увязка</button>
-                <button class="type-btn" data-type="green" onclick="toggleType(this)">Ночь</button>
-                <button class="type-btn" data-type="orange" onclick="toggleType(this)">Другая</button>
-                <button class="type-btn" data-type="purple" onclick="toggleType(this)">Выходной</button>
-            </div>
-
-            <!-- Поля для Увязки (часы) -->
-            <div id="hourlyFields" style="display: none;">
-                <div class="input-group">
-                    <label>Начало (ЧЧ:ММ)</label>
-                    <input type="text" id="startTime" placeholder="07:40" oninput="calculateHours()">
-                </div>
-                <div class="input-group">
-                    <label>Конец (ЧЧ:ММ)</label>
-                    <input type="text" id="endTime" placeholder="19:40" oninput="calculateHours()">
-                </div>
-                <div class="computed-sum" id="hourlySum">Часов: 0, Сумма: 0 р.</div>
-            </div>
-
-            <!-- Поля для День / Ночь / Другая (Сдельная) -->
-            <div id="pieceFields" style="display: none;">
-                <div class="input-group">
-                    <label>Сумма (общая)</label>
-                    <input type="number" id="pieceSum" placeholder="1177" oninput="calculatePiece()">
-                </div>
-                <div class="input-group">
-                    <label>Кол-во людей</label>
-                    <input type="number" id="piecePeople" placeholder="6" oninput="calculatePiece()">
-                </div>
-                <div class="computed-sum" id="pieceResult">Сумма: 0 р.</div>
-            </div>
-
-            <div class="modal-actions">
-                <button class="btn-delete" id="btnDelete" onclick="deleteShift()">Удалить</button>
-                <button class="btn-text" onclick="closeModal()">Отмена</button>
-                <button class="btn-save" onclick="saveShift()">Сохранить</button>
-            </div>
+            <h2 id="modalDate">День</h2>
+            <p>Выбери тип смены:</p>
+            <button class="btn" onclick="saveShift('Увязка')">Увязка (Синий)</button>
+            <button class="btn" onclick="saveShift('Смена')">Смена (Красный)</button>
+            <button class="btn" onclick="saveShift('Выходной')">Выходной</button>
+            <button class="btn btn-close" onclick="closeModal()">Отмена</button>
         </div>
     </div>
 
     <script>
-        // --- ЛОГИКА ПРИЛОЖЕНИЯ ---
-        let currentDate = new Date();
-        let currentYear = currentDate.getFullYear();
-        let currentMonth = currentDate.getMonth();
-        let selectedDateStr = "";
+        let currentYear = new Date().getFullYear();
+        let currentMonth = new Date().getMonth();
+        let selectedDate = "";
+        
+        // Загружаем данные из памяти телефона
+        let shifts = JSON.parse(localStorage.getItem('myShifts')) || {};
+        const months = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
 
-        let shiftsData = JSON.parse(localStorage.getItem('shiftsData')) || {};
-
-        const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
-
-        let tg = window.Telegram.WebApp;
-        tg.expand();
-        tg.ready();
-
-        // Делаем функции глобальными, чтобы кнопки в HTML их видели
-        window.changeMonth = function(delta) {
+        // Функции
+        function changeMonth(delta) {
             currentMonth += delta;
             if (currentMonth > 11) { currentMonth = 0; currentYear++; }
             if (currentMonth < 0) { currentMonth = 11; currentYear--; }
-            window.renderCalendar();
-        };
+            renderCalendar();
+        }
 
-        window.renderCalendar = function() {
-            document.getElementById('currentMonth').innerText = `${monthNames[currentMonth]} ${currentYear}`;
-            
+        function renderCalendar() {
+            document.getElementById('currentMonth').innerText = months[currentMonth] + " " + currentYear;
             const grid = document.getElementById('calendarGrid');
-            grid.innerHTML = '';
+            grid.innerHTML = "";
 
             const firstDay = new Date(currentYear, currentMonth, 1);
             const lastDay = new Date(currentYear, currentMonth + 1, 0);
             const daysInMonth = lastDay.getDate();
             
-            let startDayOfWeek = firstDay.getDay();
-            if (startDayOfWeek === 0) startDayOfWeek = 7;
+            let startDay = firstDay.getDay();
+            if (startDay === 0) startDay = 7; // Воскресенье
 
-            for (let i = 1; i < startDayOfWeek; i++) {
-                const empty = document.createElement('div');
+            // Пустые клетки
+            for (let i = 1; i < startDay; i++) {
+                let empty = document.createElement('div');
                 empty.className = 'day-cell empty';
                 grid.appendChild(empty);
             }
 
+            // Дни
             for (let d = 1; d <= daysInMonth; d++) {
-                const cell = document.createElement('div');
+                let cell = document.createElement('div');
                 cell.className = 'day-cell';
                 cell.innerText = d;
-                const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
                 
-                if (shiftsData[dateStr] && shiftsData[dateStr].types.length > 0) {
-                    const types = shiftsData[dateStr].types;
-                    let colorClass = 'shift-red';
-                    if (types.includes('blue')) colorClass = 'shift-blue';
-                    else if (types.includes('green')) colorClass = 'shift-green';
-                    else if (types.includes('orange')) colorClass = 'shift-orange';
-                    else if (types.includes('purple')) colorClass = 'shift-purple';
-                    
-                    cell.classList.add(colorClass);
-                    
-                    const dots = document.createElement('div');
-                    dots.className = 'dots-container';
-                    types.forEach(t => {
-                        const dot = document.createElement('div');
-                        dot.className = `dot ${t}`;
-                        dots.appendChild(dot);
-                    });
-                    cell.appendChild(dots);
+                // Формируем дату в формате YYYY-MM-DD
+                let dateStr = currentYear + "-" + String(currentMonth + 1).padStart(2, '0') + "-" + String(d).padStart(2, '0');
+                
+                if (shifts[dateStr]) {
+                    cell.classList.add('active');
                 }
 
-                const today = new Date();
-                if (d === today.getDate() && currentMonth === today.getMonth() && currentYear === today.getFullYear()) {
-                    cell.classList.add('today');
-                }
+                // Обработчик нажатия
+                cell.onclick = function() {
+                    openModal(dateStr, d);
+                };
 
-                cell.onclick = function() { window.openModal(dateStr, d); };
                 grid.appendChild(cell);
             }
+        }
 
-            window.updateSummary();
-        };
-
-        window.openModal = function(dateStr, dayNum) {
-            selectedDateStr = dateStr;
-            document.getElementById('modalDate').innerText = `${dayNum} ${monthNames[currentMonth].toLowerCase()}`;
-            
-            document.getElementById('noteInput').value = '';
-            document.querySelectorAll('.type-btn').forEach(btn => btn.classList.remove('active'));
-            document.getElementById('hourlyFields').style.display = 'none';
-            document.getElementById('pieceFields').style.display = 'none';
-            document.getElementById('startTime').value = '';
-            document.getElementById('endTime').value = '';
-            document.getElementById('pieceSum').value = '';
-            document.getElementById('piecePeople').value = '';
-            document.getElementById('hourlySum').innerText = 'Часов: 0, Сумма: 0 р.';
-            document.getElementById('pieceResult').innerText = 'Сумма: 0 р.';
-
-            if (shiftsData[dateStr]) {
-                const data = shiftsData[dateStr];
-                document.getElementById('noteInput').value = data.note || '';
-                
-                data.types.forEach(type => {
-                    const btn = document.querySelector(`.type-btn[data-type="${type}"]`);
-                    if(btn) btn.classList.add('active');
-                });
-
-                if (data.types.includes('blue')) {
-                    document.getElementById('hourlyFields').style.display = 'block';
-                    document.getElementById('startTime').value = data.startTime || '';
-                    document.getElementById('endTime').value = data.endTime || '';
-                    window.calculateHours();
-                }
-                
-                if (data.types.includes('red') || data.types.includes('green') || data.types.includes('orange')) {
-                    document.getElementById('pieceFields').style.display = 'block';
-                    document.getElementById('pieceSum').value = data.pieceSum || '';
-                    document.getElementById('piecePeople').value = data.piecePeople || '';
-                    window.calculatePiece();
-                }
-            }
-
+        function openModal(dateStr, dayNum) {
+            selectedDate = dateStr;
+            document.getElementById('modalDate').innerText = dayNum + " " + months[currentMonth];
             document.getElementById('modal').classList.add('active');
-        };
+        }
 
-        window.closeModal = function() {
+        function closeModal() {
             document.getElementById('modal').classList.remove('active');
-        };
+        }
 
-        window.toggleType = function(btn) {
-            btn.classList.toggle('active');
-            const activeTypes = Array.from(document.querySelectorAll('.type-btn.active')).map(b => b.dataset.type);
-            document.getElementById('hourlyFields').style.display = activeTypes.includes('blue') ? 'block' : 'none';
-            document.getElementById('pieceFields').style.display = (activeTypes.includes('red') || activeTypes.includes('green') || activeTypes.includes('orange')) ? 'block' : 'none';
-        };
+        function saveShift(type) {
+            shifts[selectedDate] = type;
+            localStorage.setItem('myShifts', JSON.stringify(shifts));
+            closeModal();
+            renderCalendar();
+        }
 
-        window.calculateHours = function() {
-            const start = document.getElementById('startTime').value;
-            const end = document.getElementById('endTime').value;
-            
-            if (start && end && start.includes(':') && end.includes(':')) {
-                const [h1, m1] = start.split(':').map(Number);
-                const [h2, m2] = end.split(':').map(Number);
-                
-                let diff = (h2 * 60 + m2) - (h1 * 60 + m1);
-                if (diff < 0) diff += 24 * 60;
-                
-                const hours = diff / 60;
-                const sum = hours * 11.5;
-                
-                document.getElementById('hourlySum').innerText = `Отработано: ${hours.toFixed(2)} ч. Сумма: ${sum.toFixed(2)} р.`;
-            }
-        };
-
-        window.calculatePiece = function() {
-            const sum = parseFloat(document.getElementById('pieceSum').value) || 0;
-            const people = parseInt(document.getElementById('piecePeople').value) || 1;
-            
-            if (sum > 0) {
-                const mySum = sum / people;
-                document.getElementById('pieceResult').innerText = `Сумма: ${mySum.toFixed(2)} р.`;
-            } else {
-                document.getElementById('pieceResult').innerText = 'Сумма: 0 р.';
-            }
-        };
-
-        window.saveShift = function() {
-            const activeTypes = Array.from(document.querySelectorAll('.type-btn.active')).map(b => b.dataset.type);
-            
-            if (activeTypes.length === 0) {
-                alert("Выберите хотя бы один тип смены!");
-                return;
-            }
-
-            const data = {
-                types: activeTypes,
-                note: document.getElementById('noteInput').value,
-                startTime: document.getElementById('startTime').value,
-                endTime: document.getElementById('endTime').value,
-                pieceSum: document.getElementById('pieceSum').value,
-                piecePeople: document.getElementById('piecePeople').value
-            };
-
-            if (activeTypes.includes('blue')) {
-                const start = data.startTime;
-                const end = data.endTime;
-                if (start && end && start.includes(':') && end.includes(':')) {
-                    const [h1, m1] = start.split(':').map(Number);
-                    const [h2, m2] = end.split(':').map(Number);
-                    let diff = (h2 * 60 + m2) - (h1 * 60 + m1);
-                    if (diff < 0) diff += 24 * 60;
-                    data.hours = diff / 60;
-                    data.total = data.hours * 11.5;
-                }
-            }
-
-            if (activeTypes.includes('red') || activeTypes.includes('green') || activeTypes.includes('orange')) {
-                const sum = parseFloat(data.pieceSum) || 0;
-                const people = parseInt(data.piecePeople) || 1;
-                if (sum > 0) {
-                    data.myShare = sum / people;
-                }
-            }
-
-            shiftsData[selectedDateStr] = data;
-            localStorage.setItem('shiftsData', JSON.stringify(shiftsData));
-            
-            window.closeModal();
-            window.renderCalendar();
-        };
-
-        window.deleteShift = function() {
-            if (confirm("Удалить смену за этот день?")) {
-                delete shiftsData[selectedDateStr];
-                localStorage.setItem('shiftsData', JSON.stringify(shiftsData));
-                window.closeModal();
-                window.renderCalendar();
-            }
-        };
-
-        window.updateSummary = function() {
-            let total = 0, day = 0, hourly = 0, night = 0, other = 0;
-
-            for (const dateStr in shiftsData) {
-                const data = shiftsData[dateStr];
-                if (!dateStr.startsWith(`${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`)) continue;
-
-                if (data.types.includes('red')) day += data.myShare || 0;
-                if (data.types.includes('blue')) hourly += data.total || 0;
-                if (data.types.includes('green')) night += data.myShare || 0;
-                if (data.types.includes('orange')) other += data.myShare || 0;
-            }
-
-            total = day + hourly + night + other;
-
-            document.getElementById('sumDay').innerText = day.toFixed(1);
-            document.getElementById('sumHourly').innerText = hourly.toFixed(1);
-            document.getElementById('sumNight').innerText = night.toFixed(1);
-            document.getElementById('sumOther').innerText = other.toFixed(1);
-            document.getElementById('sumTotal').innerText = total.toFixed(1);
-            
-            document.getElementById('monthTotal').innerText = `Общая: ${total.toFixed(2)} р.`;
-        };
-
-        // Старт
-        window.renderCalendar();
+        // Запуск при открытии
+        renderCalendar();
     </script>
 </body>
 </html>
