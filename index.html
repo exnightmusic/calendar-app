@@ -26,20 +26,34 @@
         .month-title { font-size: 20px; font-weight: bold; }
         .total-month { display: inline-block; background-color: rgba(255,255,255,0.1); padding: 4px 12px; border-radius: 20px; font-size: 14px; color: #ccc; }
         .weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 12px; color: var(--text-muted); margin-bottom: 10px; }
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
-        .day-cell { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 50%; font-size: 14px; cursor: pointer; position: relative; background-color: transparent; transition: all 0.2s; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; touch-action: pan-y; }
+        .day-cell { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 50%; font-size: 14px; cursor: pointer; position: relative; background-color: transparent; transition: all 0.2s; text-shadow: 0 1px 2px rgba(0,0,0,0.6); }
         .day-cell.empty { pointer-events: none; }
         .day-cell.shift-red { background-color: rgba(239, 68, 68, 0.2); color: #fff; border: 1px solid #ef4444; }
         .day-cell.shift-blue { background-color: rgba(14, 165, 233, 0.2); color: #fff; border: 1px solid #0ea5e9; }
         .day-cell.shift-green { background-color: rgba(34, 197, 94, 0.2); color: #fff; border: 1px solid #22c55e; }
         .day-cell.shift-orange { background-color: rgba(249, 115, 22, 0.2); color: #fff; border: 1px solid #f97316; }
         .day-cell.shift-purple { background-color: rgba(168, 85, 247, 0.2); color: #fff; border: 1px solid #a855f7; }
-        .day-cell.today { border: 2px solid white; }
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(255,255,255,0.5); }
+            50% { box-shadow: 0 0 0 5px rgba(255,255,255,0); }
+        }
+        .day-cell.today { border: 2px solid white; animation: pulse 2s infinite; }
         .dots-container { display: flex; gap: 2px; position: absolute; bottom: 2px; }
         .dot { width: 4px; height: 4px; border-radius: 50%; }
         .dot.red { background: var(--accent-red); } .dot.blue { background: var(--accent-blue); } .dot.green { background: var(--accent-green); } .dot.orange { background: var(--accent-orange); } .dot.purple { background: var(--accent-purple); }
+        .note-icon {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            font-size: 10px;
+            line-height: 1;
+            pointer-events: none;
+        }
         .bottom-panel { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--bg-color); border-top: 1px solid #333; display: flex; padding: 10px; gap: 5px; overflow-x: auto; }
-        .summary-box { flex: 1; text-align: center; background: var(--card-bg); padding: 8px 5px; border-radius: 8px; min-width: 70px; }
+        .summary-box { flex: 1; text-align: center; background: var(--card-bg); padding: 8px 5px; border-radius: 8px; min-width: 70px; cursor: pointer; transition: transform 0.1s, background 0.2s; user-select: none; -webkit-user-select: none; }
+        .summary-box:hover { background: #333; }
+        .summary-box:active { transform: scale(0.95); }
         .summary-title { font-size: 10px; color: var(--text-muted); }
         .summary-value { font-size: 14px; font-weight: bold; margin-top: 2px; }
         .summary-value.red { color: var(--accent-red); } .summary-value.blue { color: var(--accent-blue); } .summary-value.green { color: var(--accent-green); } .summary-value.orange { color: var(--accent-orange); }
@@ -65,6 +79,51 @@
         .btn-save { background: #444; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: bold;}
         .btn-delete { color: var(--accent-red); font-size: 16px; background: none; border: none; cursor: pointer; font-weight: bold;}
         .sync-btn { background: #0ea5e9; color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-size: 16px; font-weight: bold; margin-top: 20px; margin-bottom: 80px; cursor: pointer;}
+        .template-btn {
+            padding: 6px 10px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid var(--border-color);
+            color: white;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            user-select: none;
+            -webkit-user-select: none;
+            white-space: nowrap;
+        }
+        .template-btn:active { background: rgba(255,255,255,0.25); }
+        .save-tpl-btn {
+            display: block;
+            margin: 0 auto 15px auto;
+            padding: 8px 14px;
+            background: transparent;
+            border: 1px dashed #555;
+            color: #aaa;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #333;
+            font-size: 14px;
+        }
+        .detail-row:last-child { border-bottom: none; }
+        .detail-date { color: #ccc; }
+        .detail-amount { font-weight: bold; color: #fff; }
+        .details-total {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px solid #444;
+            font-weight: bold;
+            font-size: 16px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .empty-details { text-align: center; color: #888; padding: 30px 10px; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -84,22 +143,42 @@
     
     <div class="calendar-grid" id="calendarGrid"></div>
 
-    <!-- Кнопка синхронизации (перенесена вниз под календарь, чтобы не мешала) -->
     <button class="sync-btn" onclick="syncToCloud()">☁️ Сохранить в облако Telegram</button>
 
     <div class="bottom-panel">
-        <div class="summary-box"><div class="summary-title">Смена</div><div class="summary-value red" id="sumDay">0,0</div></div>
-        <div class="summary-box"><div class="summary-title">Увязка</div><div class="summary-value blue" id="sumHourly">0,0</div></div>
-        <div class="summary-box"><div class="summary-title">Ночь</div><div class="summary-value green" id="sumNight">0,0</div></div>
-        <div class="summary-box"><div class="summary-title">Другая</div><div class="summary-value orange" id="sumOther">0,0</div></div>
-        <div class="summary-box"><div class="summary-title">Всего</div><div class="summary-value" id="sumTotal">0,0</div></div>
+        <div class="summary-box" onclick="openDetails('day')">
+            <div class="summary-title">Смена</div>
+            <div class="summary-value red" id="sumDay">0,0</div>
+        </div>
+        <div class="summary-box" onclick="openDetails('hourly')">
+            <div class="summary-title">Увязка</div>
+            <div class="summary-value blue" id="sumHourly">0,0</div>
+        </div>
+        <div class="summary-box" onclick="openDetails('night')">
+            <div class="summary-title">Ночь</div>
+            <div class="summary-value green" id="sumNight">0,0</div>
+        </div>
+        <div class="summary-box" onclick="openDetails('other')">
+            <div class="summary-title">Другая</div>
+            <div class="summary-value orange" id="sumOther">0,0</div>
+        </div>
+        <div class="summary-box" onclick="openDetails('total')">
+            <div class="summary-title">Всего</div>
+            <div class="summary-value" id="sumTotal">0,0</div>
+        </div>
     </div>
 
+    <!-- Модалка редактирования дня -->
     <div class="modal-overlay" id="modal">
         <div class="modal">
             <div class="modal-header">
                 <div class="modal-date" id="modalDate">10 ноября</div>
                 <button class="btn-text" onclick="closeModal()">✖</button>
+            </div>
+
+            <div id="templatesSection" style="display: none; margin-bottom: 15px;">
+                <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 6px;">Шаблоны (нажми чтобы применить, долгое нажатие — удалить):</div>
+                <div id="templatesList" style="display: flex; flex-wrap: wrap; gap: 6px;"></div>
             </div>
             
             <div style="font-size: 14px; margin-bottom: 10px; font-weight: bold;">Тип смены (можно несколько):</div>
@@ -144,10 +223,27 @@
                 <input type="text" id="noteInput" placeholder="Введите текст...">
             </div>
 
+            <button class="save-tpl-btn" onclick="saveAsTemplate()">⭐ Сохранить как шаблон</button>
+
             <div class="modal-actions">
                 <button class="btn-delete" id="btnDelete" onclick="deleteShift()">Удалить</button>
                 <button class="btn-text" onclick="closeModal()">Отмена</button>
                 <button class="btn-save" onclick="saveShift()">Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модалка детализации по категории -->
+    <div class="modal-overlay" id="detailsModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-date" id="detailsTitle">Детали</div>
+                <button class="btn-text" onclick="closeDetailsModal()">✖</button>
+            </div>
+            <div id="detailsList"></div>
+            <div class="details-total">
+                <span>Итого:</span>
+                <span id="detailsTotal">0 р.</span>
             </div>
         </div>
     </div>
@@ -158,6 +254,21 @@
         let selectedDateStr = "";
         let shiftsData = JSON.parse(localStorage.getItem('shiftsData')) || {};
         const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
+
+        const colorHexMap = {
+            red: '#ef4444',
+            blue: '#0ea5e9',
+            green: '#22c55e',
+            orange: '#f97316',
+            purple: '#a855f7'
+        };
+        const colorRgbaMap = {
+            red: 'rgba(239, 68, 68, 0.35)',
+            blue: 'rgba(14, 165, 233, 0.35)',
+            green: 'rgba(34, 197, 94, 0.35)',
+            orange: 'rgba(249, 115, 22, 0.35)',
+            purple: 'rgba(168, 85, 247, 0.35)'
+        };
 
         let tg = window.Telegram.WebApp;
         tg.expand();
@@ -195,13 +306,24 @@
                 
                 if (shiftsData[dateStr] && shiftsData[dateStr].types.length > 0) {
                     const types = shiftsData[dateStr].types;
-                    let colorClass = 'shift-red';
-                    if (types.includes('blue')) colorClass = 'shift-blue';
-                    else if (types.includes('green')) colorClass = 'shift-green';
-                    else if (types.includes('orange')) colorClass = 'shift-orange';
-                    else if (types.includes('purple')) colorClass = 'shift-purple';
                     
-                    cell.classList.add(colorClass);
+                    if (types.length === 1) {
+                        cell.classList.add('shift-' + types[0]);
+                    } else {
+                        const step = 100 / types.length;
+                        const stops = types.map((t, i) => `${colorRgbaMap[t]} ${i*step}% ${(i+1)*step}%`).join(', ');
+                        cell.style.background = `conic-gradient(${stops})`;
+                        cell.style.border = '1px solid ' + colorHexMap[types[0]];
+                    }
+
+                    const data = shiftsData[dateStr];
+                    if (data.note && data.note.trim()) {
+                        const noteIcon = document.createElement('div');
+                        noteIcon.className = 'note-icon';
+                        noteIcon.innerText = '📝';
+                        cell.appendChild(noteIcon);
+                    }
+
                     const dots = document.createElement('div');
                     dots.className = 'dots-container';
                     types.forEach(t => {
@@ -217,11 +339,33 @@
                     cell.classList.add('today');
                 }
 
-                cell.onclick = function() { openModal(dateStr, d); };
+                cell.onclick = function() { 
+                    if (swiped) { swiped = false; return; }
+                    openModal(dateStr, d); 
+                };
                 grid.appendChild(cell);
             }
             updateSummary();
         }
+
+        // --- СВАЙП МЕСЯЦЕВ ---
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let swiped = false;
+        const gridEl = document.getElementById('calendarGrid');
+        gridEl.addEventListener('touchstart', e => {
+            touchStartX = e.changedTouches[0].screenX;
+            touchStartY = e.changedTouches[0].screenY;
+            swiped = false;
+        }, { passive: true });
+        gridEl.addEventListener('touchend', e => {
+            const dx = e.changedTouches[0].screenX - touchStartX;
+            const dy = e.changedTouches[0].screenY - touchStartY;
+            if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+                swiped = true;
+                changeMonth(dx > 0 ? -1 : 1);
+            }
+        }, { passive: true });
 
         function openModal(dateStr, dayNum) {
             selectedDateStr = dateStr;
@@ -261,6 +405,8 @@
                     calculatePiece();
                 }
             }
+
+            renderTemplates();
             document.getElementById('modal').classList.add('active');
         }
 
@@ -381,6 +527,192 @@
             document.getElementById('sumOther').innerText = other.toFixed(1);
             document.getElementById('sumTotal').innerText = total.toFixed(1);
             document.getElementById('monthTotal').innerText = `Общая: ${total.toFixed(2)} р.`;
+        }
+
+        // --- ШАБЛОНЫ ---
+        function getTemplates() {
+            return JSON.parse(localStorage.getItem('shiftTemplates') || '[]');
+        }
+        function setTemplates(list) {
+            localStorage.setItem('shiftTemplates', JSON.stringify(list));
+        }
+
+        function renderTemplates() {
+            const templates = getTemplates();
+            const section = document.getElementById('templatesSection');
+            const container = document.getElementById('templatesList');
+            container.innerHTML = '';
+
+            if (templates.length === 0) {
+                section.style.display = 'none';
+                return;
+            }
+            section.style.display = 'block';
+
+            templates.forEach((tpl, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'template-btn';
+                btn.innerText = tpl.name;
+                btn.onclick = () => applyTemplate(idx);
+
+                let pressTimer = null;
+                let longPressed = false;
+                btn.addEventListener('touchstart', () => {
+                    longPressed = false;
+                    pressTimer = setTimeout(() => {
+                        longPressed = true;
+                        deleteTemplate(idx);
+                    }, 700);
+                }, { passive: true });
+                btn.addEventListener('touchend', () => {
+                    if (pressTimer) clearTimeout(pressTimer);
+                });
+                btn.addEventListener('touchmove', () => {
+                    if (pressTimer) clearTimeout(pressTimer);
+                });
+                btn.addEventListener('mousedown', () => {
+                    longPressed = false;
+                    pressTimer = setTimeout(() => {
+                        longPressed = true;
+                        deleteTemplate(idx);
+                    }, 700);
+                });
+                btn.addEventListener('mouseup', () => {
+                    if (pressTimer) clearTimeout(pressTimer);
+                });
+
+                container.appendChild(btn);
+            });
+        }
+
+        function applyTemplate(idx) {
+            const templates = getTemplates();
+            const tpl = templates[idx];
+            if (!tpl) return;
+
+            document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+            tpl.types.forEach(t => {
+                const btn = document.querySelector(`.type-btn[data-type="${t}"]`);
+                if (btn) btn.classList.add('active');
+            });
+
+            document.getElementById('hourlyRate').value = tpl.rate || '11.5';
+            document.getElementById('startTime').value = tpl.startTime || '';
+            document.getElementById('endTime').value = tpl.endTime || '';
+            document.getElementById('pieceSum').value = tpl.pieceSum || '';
+            document.getElementById('piecePeople').value = tpl.piecePeople || '';
+
+            document.getElementById('hourlyFields').style.display = tpl.types.includes('blue') ? 'block' : 'none';
+            document.getElementById('pieceFields').style.display = (tpl.types.includes('red') || tpl.types.includes('green') || tpl.types.includes('orange')) ? 'block' : 'none';
+
+            calculateHours();
+            calculatePiece();
+        }
+
+        function saveAsTemplate() {
+            const activeTypes = Array.from(document.querySelectorAll('.type-btn.active')).map(b => b.dataset.type);
+            if (activeTypes.length === 0) { alert('Сначала выбери хотя бы один тип смены'); return; }
+
+            const name = prompt('Название шаблона:', 'Мой шаблон');
+            if (!name || !name.trim()) return;
+
+            const newTpl = {
+                name: name.trim(),
+                types: activeTypes,
+                rate: parseFloat(document.getElementById('hourlyRate').value) || 11.5,
+                startTime: document.getElementById('startTime').value,
+                endTime: document.getElementById('endTime').value,
+                pieceSum: document.getElementById('pieceSum').value,
+                piecePeople: document.getElementById('piecePeople').value
+            };
+
+            const templates = getTemplates();
+            const existingIdx = templates.findIndex(t => t.name === newTpl.name);
+            if (existingIdx >= 0) {
+                if (confirm('Шаблон с таким именем уже есть. Перезаписать?')) {
+                    templates[existingIdx] = newTpl;
+                } else {
+                    return;
+                }
+            } else {
+                templates.push(newTpl);
+            }
+            setTemplates(templates);
+            renderTemplates();
+            tg.showAlert('Шаблон сохранён!');
+        }
+
+        function deleteTemplate(idx) {
+            if (!confirm('Удалить этот шаблон?')) return;
+            const templates = getTemplates();
+            templates.splice(idx, 1);
+            setTemplates(templates);
+            renderTemplates();
+        }
+
+        // --- ДЕТАЛИЗАЦИЯ ПО КАТЕГОРИИ ---
+        function openDetails(type) {
+            const titles = {
+                day: 'Смена',
+                hourly: 'Увязка',
+                night: 'Ночь',
+                other: 'Другая',
+                total: 'Всего'
+            };
+            document.getElementById('detailsTitle').innerText = titles[type] + ' — ' + monthNames[currentMonth] + ' ' + currentYear;
+
+            const prefix = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
+            const entries = [];
+            let total = 0;
+
+            for (const dateStr in shiftsData) {
+                if (!dateStr.startsWith(prefix)) continue;
+                const data = shiftsData[dateStr];
+                const types = data.types || [];
+                const share = data.myShare || 0;
+                const hourly = data.total || 0;
+                let amount = 0;
+                let include = false;
+
+                if (type === 'day' && types.includes('red')) { amount = share; include = true; }
+                else if (type === 'hourly' && types.includes('blue')) { amount = hourly; include = true; }
+                else if (type === 'night' && types.includes('green')) { amount = share; include = true; }
+                else if (type === 'other' && types.includes('orange')) { amount = share; include = true; }
+                else if (type === 'total') {
+                    if (types.includes('red')) amount += share;
+                    if (types.includes('blue')) amount += hourly;
+                    if (types.includes('green')) amount += share;
+                    if (types.includes('orange')) amount += share;
+                    include = true;
+                }
+
+                if (include) {
+                    entries.push({ day: parseInt(dateStr.split('-')[2]), amount });
+                    total += amount;
+                }
+            }
+
+            entries.sort((a, b) => a.day - b.day);
+
+            let html = '';
+            if (entries.length === 0) {
+                html = '<div class="empty-details">За этот месяц нет записей по этой категории</div>';
+            } else {
+                entries.forEach(e => {
+                    html += `<div class="detail-row">
+                        <span class="detail-date">${e.day} ${monthNames[currentMonth].toLowerCase()}</span>
+                        <span class="detail-amount">${e.amount.toFixed(2)} р.</span>
+                    </div>`;
+                });
+            }
+
+            document.getElementById('detailsList').innerHTML = html;
+            document.getElementById('detailsTotal').innerText = total.toFixed(2) + ' р.';
+            document.getElementById('detailsModal').classList.add('active');
+        }
+
+        function closeDetailsModal() {
+            document.getElementById('detailsModal').classList.remove('active');
         }
 
         // --- СИНХРОНИЗАЦИЯ С ОБЛАКОМ TELEGRAM ---
