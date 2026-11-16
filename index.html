@@ -30,7 +30,7 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-main);
-            padding-bottom: 80px; /* Место для нижней панели */
+            padding-bottom: 80px;
         }
 
         /* --- Шапка --- */
@@ -38,6 +38,21 @@
             text-align: center;
             margin-bottom: 15px;
             position: relative;
+        }
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .nav-btn {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: white;
+            font-size: 18px;
+            padding: 5px 15px;
+            border-radius: 8px;
+            cursor: pointer;
         }
         .month-title {
             font-size: 20px;
@@ -49,7 +64,6 @@
             padding: 4px 12px;
             border-radius: 20px;
             font-size: 14px;
-            margin-top: 5px;
             color: #ccc;
         }
 
@@ -236,7 +250,11 @@
 <body>
 
     <div class="header">
-        <div class="month-title" id="currentMonth">Месяц</div>
+        <div class="nav-container">
+            <button class="nav-btn" onclick="changeMonth(-1)">◀</button>
+            <div class="month-title" id="currentMonth">Месяц</div>
+            <button class="nav-btn" onclick="changeMonth(1)">▶</button>
+        </div>
         <div class="total-month" id="monthTotal">Общая: 0 р.</div>
     </div>
 
@@ -332,21 +350,26 @@
         // --- ЛОГИКА ПРИЛОЖЕНИЯ ---
         let currentDate = new Date();
         let currentYear = currentDate.getFullYear();
-        let currentMonth = currentDate.getMonth(); // 0-11
+        let currentMonth = currentDate.getMonth();
         let selectedDateStr = "";
 
-        // Загружаем данные из памяти телефона
         let shiftsData = JSON.parse(localStorage.getItem('shiftsData')) || {};
 
         const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
 
-        // Инициализация Telegram
         let tg = window.Telegram.WebApp;
         tg.expand();
         tg.ready();
 
-        // --- РЕНДЕР КАЛЕНДАРЯ ---
-        function renderCalendar() {
+        // Делаем функции глобальными, чтобы кнопки в HTML их видели
+        window.changeMonth = function(delta) {
+            currentMonth += delta;
+            if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+            if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+            window.renderCalendar();
+        };
+
+        window.renderCalendar = function() {
             document.getElementById('currentMonth').innerText = `${monthNames[currentMonth]} ${currentYear}`;
             
             const grid = document.getElementById('calendarGrid');
@@ -356,26 +379,21 @@
             const lastDay = new Date(currentYear, currentMonth + 1, 0);
             const daysInMonth = lastDay.getDate();
             
-            // День недели первого дня (0 - Вс, 1 - Пн...)
             let startDayOfWeek = firstDay.getDay();
-            if (startDayOfWeek === 0) startDayOfWeek = 7; // Делаем Вс = 7
+            if (startDayOfWeek === 0) startDayOfWeek = 7;
 
-            // Пустые ячейки до начала
             for (let i = 1; i < startDayOfWeek; i++) {
                 const empty = document.createElement('div');
                 empty.className = 'day-cell empty';
                 grid.appendChild(empty);
             }
 
-            // Дни
             for (let d = 1; d <= daysInMonth; d++) {
                 const cell = document.createElement('div');
                 cell.className = 'day-cell';
                 cell.innerText = d;
-                
                 const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
                 
-                // Подсветка дня, если есть смены
                 if (shiftsData[dateStr] && shiftsData[dateStr].types.length > 0) {
                     const types = shiftsData[dateStr].types;
                     let colorClass = 'shift-red';
@@ -386,7 +404,6 @@
                     
                     cell.classList.add(colorClass);
                     
-                    // Точки
                     const dots = document.createElement('div');
                     dots.className = 'dots-container';
                     types.forEach(t => {
@@ -397,25 +414,22 @@
                     cell.appendChild(dots);
                 }
 
-                // Сегодняшний день
                 const today = new Date();
                 if (d === today.getDate() && currentMonth === today.getMonth() && currentYear === today.getFullYear()) {
                     cell.classList.add('today');
                 }
 
-                cell.onclick = () => openModal(dateStr, d);
+                cell.onclick = function() { window.openModal(dateStr, d); };
                 grid.appendChild(cell);
             }
 
-            updateSummary();
-        }
+            window.updateSummary();
+        };
 
-        // --- ОТКРЫТИЕ ОКНА ---
-        function openModal(dateStr, dayNum) {
+        window.openModal = function(dateStr, dayNum) {
             selectedDateStr = dateStr;
             document.getElementById('modalDate').innerText = `${dayNum} ${monthNames[currentMonth].toLowerCase()}`;
             
-            // Сброс полей
             document.getElementById('noteInput').value = '';
             document.querySelectorAll('.type-btn').forEach(btn => btn.classList.remove('active'));
             document.getElementById('hourlyFields').style.display = 'none';
@@ -427,7 +441,6 @@
             document.getElementById('hourlySum').innerText = 'Часов: 0, Сумма: 0 р.';
             document.getElementById('pieceResult').innerText = 'Сумма: 0 р.';
 
-            // Загрузка данных, если есть
             if (shiftsData[dateStr]) {
                 const data = shiftsData[dateStr];
                 document.getElementById('noteInput').value = data.note || '';
@@ -441,37 +454,32 @@
                     document.getElementById('hourlyFields').style.display = 'block';
                     document.getElementById('startTime').value = data.startTime || '';
                     document.getElementById('endTime').value = data.endTime || '';
-                    calculateHours();
+                    window.calculateHours();
                 }
                 
                 if (data.types.includes('red') || data.types.includes('green') || data.types.includes('orange')) {
                     document.getElementById('pieceFields').style.display = 'block';
                     document.getElementById('pieceSum').value = data.pieceSum || '';
                     document.getElementById('piecePeople').value = data.piecePeople || '';
-                    calculatePiece();
+                    window.calculatePiece();
                 }
             }
 
             document.getElementById('modal').classList.add('active');
-        }
+        };
 
-        function closeModal() {
+        window.closeModal = function() {
             document.getElementById('modal').classList.remove('active');
-        }
+        };
 
-        // --- ВЫБОР ТИПОВ ---
-        function toggleType(btn) {
+        window.toggleType = function(btn) {
             btn.classList.toggle('active');
-            
             const activeTypes = Array.from(document.querySelectorAll('.type-btn.active')).map(b => b.dataset.type);
-            
-            // Показываем нужные поля
             document.getElementById('hourlyFields').style.display = activeTypes.includes('blue') ? 'block' : 'none';
             document.getElementById('pieceFields').style.display = (activeTypes.includes('red') || activeTypes.includes('green') || activeTypes.includes('orange')) ? 'block' : 'none';
-        }
+        };
 
-        // --- РАСЧЕТЫ ---
-        function calculateHours() {
+        window.calculateHours = function() {
             const start = document.getElementById('startTime').value;
             const end = document.getElementById('endTime').value;
             
@@ -480,16 +488,16 @@
                 const [h2, m2] = end.split(':').map(Number);
                 
                 let diff = (h2 * 60 + m2) - (h1 * 60 + m1);
-                if (diff < 0) diff += 24 * 60; // Если через полночь
+                if (diff < 0) diff += 24 * 60;
                 
                 const hours = diff / 60;
                 const sum = hours * 11.5;
                 
                 document.getElementById('hourlySum').innerText = `Отработано: ${hours.toFixed(2)} ч. Сумма: ${sum.toFixed(2)} р.`;
             }
-        }
+        };
 
-        function calculatePiece() {
+        window.calculatePiece = function() {
             const sum = parseFloat(document.getElementById('pieceSum').value) || 0;
             const people = parseInt(document.getElementById('piecePeople').value) || 1;
             
@@ -499,10 +507,9 @@
             } else {
                 document.getElementById('pieceResult').innerText = 'Сумма: 0 р.';
             }
-        }
+        };
 
-        // --- СОХРАНЕНИЕ ---
-        function saveShift() {
+        window.saveShift = function() {
             const activeTypes = Array.from(document.querySelectorAll('.type-btn.active')).map(b => b.dataset.type);
             
             if (activeTypes.length === 0) {
@@ -519,7 +526,6 @@
                 piecePeople: document.getElementById('piecePeople').value
             };
 
-            // Расчеты для сохранения
             if (activeTypes.includes('blue')) {
                 const start = data.startTime;
                 const end = data.endTime;
@@ -544,26 +550,24 @@
             shiftsData[selectedDateStr] = data;
             localStorage.setItem('shiftsData', JSON.stringify(shiftsData));
             
-            closeModal();
-            renderCalendar();
-        }
+            window.closeModal();
+            window.renderCalendar();
+        };
 
-        function deleteShift() {
+        window.deleteShift = function() {
             if (confirm("Удалить смену за этот день?")) {
                 delete shiftsData[selectedDateStr];
                 localStorage.setItem('shiftsData', JSON.stringify(shiftsData));
-                closeModal();
-                renderCalendar();
+                window.closeModal();
+                window.renderCalendar();
             }
-        }
+        };
 
-        // --- ИТОГИ ---
-        function updateSummary() {
+        window.updateSummary = function() {
             let total = 0, day = 0, hourly = 0, night = 0, other = 0;
 
             for (const dateStr in shiftsData) {
                 const data = shiftsData[dateStr];
-                // Считаем только за текущий месяц
                 if (!dateStr.startsWith(`${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`)) continue;
 
                 if (data.types.includes('red')) day += data.myShare || 0;
@@ -581,25 +585,10 @@
             document.getElementById('sumTotal').innerText = total.toFixed(1);
             
             document.getElementById('monthTotal').innerText = `Общая: ${total.toFixed(2)} р.`;
-        }
-
-        // Свайпы для смены месяцев (свайп влево/вправо)
-        let touchStartX = 0;
-        let touchEndX = 0;
-        document.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; });
-        document.addEventListener('touchend', e => { 
-            touchEndX = e.changedTouches[0].screenX;
-            if (touchStartX - touchEndX > 50) { currentMonth++; } // Свайп влево (следующий)
-            if (touchEndX - touchStartX > 50) { currentMonth--; } // Свайп вправо (предыдущий)
-            
-            if (currentMonth > 11) { currentMonth = 0; currentYear++; }
-            if (currentMonth < 0) { currentMonth = 11; currentYear--; }
-            
-            renderCalendar();
-        });
+        };
 
         // Старт
-        renderCalendar();
+        window.renderCalendar();
     </script>
 </body>
 </html>
