@@ -11,11 +11,6 @@
             --card-bg: #2a2a2a;
             --text-main: #ffffff;
             --text-muted: #888888;
-            --accent-blue: #0ea5e9;
-            --accent-red: #ef4444;
-            --accent-green: #22c55e;
-            --accent-orange: #f97316;
-            --accent-purple: #a855f7;
             --border-color: #444444;
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -24,24 +19,29 @@
         .nav-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
         .nav-btn { background: rgba(255,255,255,0.1); border: none; color: white; font-size: 18px; padding: 5px 15px; border-radius: 8px; cursor: pointer; }
         .month-title { font-size: 20px; font-weight: bold; }
+        .month-total-row { display: flex; justify-content: center; align-items: center; gap: 10px; }
         .total-month { display: inline-block; background-color: rgba(255,255,255,0.1); padding: 4px 12px; border-radius: 20px; font-size: 14px; color: #ccc; }
+        .settings-btn {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: white;
+            padding: 6px 10px;
+            border-radius: 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .settings-btn:active { background: rgba(255,255,255,0.2); }
         .weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 12px; color: var(--text-muted); margin-bottom: 10px; }
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; touch-action: pan-y; }
         .day-cell { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 50%; font-size: 14px; cursor: pointer; position: relative; background-color: transparent; transition: all 0.2s; text-shadow: 0 1px 2px rgba(0,0,0,0.6); }
         .day-cell.empty { pointer-events: none; }
-        .day-cell.shift-red { background-color: rgba(239, 68, 68, 0.2); color: #fff; border: 1px solid #ef4444; }
-        .day-cell.shift-blue { background-color: rgba(14, 165, 233, 0.2); color: #fff; border: 1px solid #0ea5e9; }
-        .day-cell.shift-green { background-color: rgba(34, 197, 94, 0.2); color: #fff; border: 1px solid #22c55e; }
-        .day-cell.shift-orange { background-color: rgba(249, 115, 22, 0.2); color: #fff; border: 1px solid #f97316; }
-        .day-cell.shift-purple { background-color: rgba(168, 85, 247, 0.2); color: #fff; border: 1px solid #a855f7; }
         @keyframes pulse {
             0%, 100% { box-shadow: 0 0 0 0 rgba(255,255,255,0.5); }
             50% { box-shadow: 0 0 0 5px rgba(255,255,255,0); }
         }
-        .day-cell.today { border: 2px solid white; animation: pulse 2s infinite; }
+        .day-cell.today { border: 2px solid white !important; animation: pulse 2s infinite; }
         .dots-container { display: flex; gap: 2px; position: absolute; bottom: 2px; }
         .dot { width: 4px; height: 4px; border-radius: 50%; }
-        .dot.red { background: var(--accent-red); } .dot.blue { background: var(--accent-blue); } .dot.green { background: var(--accent-green); } .dot.orange { background: var(--accent-orange); } .dot.purple { background: var(--accent-purple); }
         .note-icon {
             position: absolute;
             top: -2px;
@@ -51,12 +51,11 @@
             pointer-events: none;
         }
         .bottom-panel { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--bg-color); border-top: 1px solid #333; display: flex; padding: 10px; gap: 5px; overflow-x: auto; }
-        .summary-box { flex: 1; text-align: center; background: var(--card-bg); padding: 8px 5px; border-radius: 8px; min-width: 70px; cursor: pointer; transition: transform 0.1s, background 0.2s; user-select: none; -webkit-user-select: none; }
+        .summary-box { flex: 0 0 auto; min-width: 70px; text-align: center; background: var(--card-bg); padding: 8px 5px; border-radius: 8px; cursor: pointer; transition: transform 0.1s, background 0.2s; user-select: none; -webkit-user-select: none; }
         .summary-box:hover { background: #333; }
         .summary-box:active { transform: scale(0.95); }
-        .summary-title { font-size: 10px; color: var(--text-muted); }
+        .summary-title { font-size: 10px; color: var(--text-muted); white-space: nowrap; }
         .summary-value { font-size: 14px; font-weight: bold; margin-top: 2px; }
-        .summary-value.red { color: var(--accent-red); } .summary-value.blue { color: var(--accent-blue); } .summary-value.green { color: var(--accent-green); } .summary-value.orange { color: var(--accent-orange); }
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center; padding: 15px; }
         .modal-overlay.active { display: flex; }
         .modal { background: var(--card-bg); width: 100%; max-width: 400px; max-height: 90vh; overflow-y: auto; border-radius: 16px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
@@ -65,20 +64,14 @@
         .input-group { margin-bottom: 15px; position: relative; }
         .input-group label { position: absolute; top: -8px; left: 10px; background: var(--card-bg); padding: 0 4px; font-size: 12px; color: var(--text-muted); }
         .input-group input { width: 100%; background: transparent; border: 1px solid var(--border-color); color: white; padding: 12px; border-radius: 8px; font-size: 16px; outline: none; font-family: inherit; }
-        .input-group input:focus { border-color: var(--accent-blue); }
+        .input-group input:focus { border-color: #0ea5e9; }
         .computed-sum { text-align: center; font-weight: bold; margin: 5px 0 15px 0; font-size: 14px; }
         .shift-types { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
         .type-btn { flex: 1 1 30%; padding: 10px; background: transparent; border: 1px solid var(--border-color); color: white; border-radius: 8px; font-size: 14px; cursor: pointer; }
-        .type-btn.active { background: var(--accent-red); border-color: var(--accent-red); }
-        .type-btn.active[data-type="blue"] { background: var(--accent-blue); border-color: var(--accent-blue); }
-        .type-btn.active[data-type="green"] { background: var(--accent-green); border-color: var(--accent-green); }
-        .type-btn.active[data-type="orange"] { background: var(--accent-orange); border-color: var(--accent-orange); }
-        .type-btn.active[data-type="purple"] { background: var(--accent-purple); border-color: var(--accent-purple); }
         .modal-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; }
         .btn-text { background: none; border: none; color: var(--text-muted); font-size: 16px; cursor: pointer; }
         .btn-save { background: #444; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: bold;}
-        .btn-delete { color: var(--accent-red); font-size: 16px; background: none; border: none; cursor: pointer; font-weight: bold;}
-        .sync-btn { background: #0ea5e9; color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-size: 16px; font-weight: bold; margin-top: 20px; margin-bottom: 80px; cursor: pointer;}
+        .btn-delete { color: #ef4444; font-size: 16px; background: none; border: none; cursor: pointer; font-weight: bold;}
         .template-btn {
             padding: 6px 10px;
             background: rgba(255,255,255,0.1);
@@ -94,8 +87,9 @@
         .template-btn:active { background: rgba(255,255,255,0.25); }
         .save-tpl-btn {
             display: block;
+            width: 100%;
             margin: 0 auto 15px auto;
-            padding: 8px 14px;
+            padding: 10px 14px;
             background: transparent;
             border: 1px dashed #555;
             color: #aaa;
@@ -103,17 +97,31 @@
             font-size: 13px;
             cursor: pointer;
         }
+        .add-type-btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background: transparent;
+            border: 1px dashed #0ea5e9;
+            color: #0ea5e9;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
         .detail-row {
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            align-items: flex-start;
             padding: 10px 0;
             border-bottom: 1px solid #333;
             font-size: 14px;
+            gap: 10px;
         }
         .detail-row:last-child { border-bottom: none; }
-        .detail-date { color: #ccc; }
-        .detail-amount { font-weight: bold; color: #fff; }
+        .detail-date { color: #ccc; font-weight: 500; }
+        .detail-sub { color: #888; font-size: 12px; margin-top: 3px; }
+        .detail-amount { font-weight: bold; color: #fff; white-space: nowrap; }
         .details-total {
             margin-top: 15px;
             padding-top: 15px;
@@ -124,6 +132,91 @@
             justify-content: space-between;
         }
         .empty-details { text-align: center; color: #888; padding: 30px 10px; font-size: 14px; }
+        .type-item {
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            margin-bottom: 12px;
+        }
+        .type-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .type-name-input {
+            flex: 1;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: white;
+            padding: 8px 10px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
+        }
+        .type-name-input:focus { border-color: #0ea5e9; }
+        .color-picker {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+        .color-dot {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: transform 0.1s;
+        }
+        .color-dot:active { transform: scale(0.9); }
+        .color-dot.selected { border-color: white; box-shadow: 0 0 0 2px rgba(255,255,255,0.3); }
+        .type-mode-select {
+            width: 100%;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: white;
+            padding: 8px 10px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
+            cursor: pointer;
+        }
+        .type-mode-select option { background: var(--card-bg); }
+        .icon-delete {
+            background: transparent;
+            border: none;
+            color: #ef4444;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 4px 8px;
+        }
+        .settings-sync-btn {
+            background: #0ea5e9;
+            color: white;
+            border: none;
+            padding: 14px;
+            width: 100%;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+        .settings-load-btn {
+            background: transparent;
+            color: #0ea5e9;
+            border: 1px solid #0ea5e9;
+            padding: 12px;
+            width: 100%;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
@@ -134,7 +227,10 @@
             <div class="month-title" id="currentMonth">Месяц</div>
             <button class="nav-btn" onclick="changeMonth(1)">▶</button>
         </div>
-        <div class="total-month" id="monthTotal">Общая: 0 р.</div>
+        <div class="month-total-row">
+            <div class="total-month" id="monthTotal">Общая: 0 р.</div>
+            <button class="settings-btn" onclick="openSettings()">⚙️</button>
+        </div>
     </div>
 
     <div class="weekdays">
@@ -143,30 +239,7 @@
     
     <div class="calendar-grid" id="calendarGrid"></div>
 
-    <button class="sync-btn" onclick="syncToCloud()">☁️ Сохранить в облако Telegram</button>
-
-    <div class="bottom-panel">
-        <div class="summary-box" onclick="openDetails('day')">
-            <div class="summary-title">Смена</div>
-            <div class="summary-value red" id="sumDay">0,0</div>
-        </div>
-        <div class="summary-box" onclick="openDetails('hourly')">
-            <div class="summary-title">Увязка</div>
-            <div class="summary-value blue" id="sumHourly">0,0</div>
-        </div>
-        <div class="summary-box" onclick="openDetails('night')">
-            <div class="summary-title">Ночь</div>
-            <div class="summary-value green" id="sumNight">0,0</div>
-        </div>
-        <div class="summary-box" onclick="openDetails('other')">
-            <div class="summary-title">Другая</div>
-            <div class="summary-value orange" id="sumOther">0,0</div>
-        </div>
-        <div class="summary-box" onclick="openDetails('total')">
-            <div class="summary-title">Всего</div>
-            <div class="summary-value" id="sumTotal">0,0</div>
-        </div>
-    </div>
+    <div class="bottom-panel" id="bottomPanel"></div>
 
     <!-- Модалка редактирования дня -->
     <div class="modal-overlay" id="modal">
@@ -182,13 +255,7 @@
             </div>
             
             <div style="font-size: 14px; margin-bottom: 10px; font-weight: bold;">Тип смены (можно несколько):</div>
-            <div class="shift-types">
-                <button class="type-btn" data-type="red" onclick="toggleType(this)">Смена</button>
-                <button class="type-btn" data-type="blue" onclick="toggleType(this)">Увязка</button>
-                <button class="type-btn" data-type="green" onclick="toggleType(this)">Ночь</button>
-                <button class="type-btn" data-type="orange" onclick="toggleType(this)">Другая</button>
-                <button class="type-btn" data-type="purple" onclick="toggleType(this)">Выходной</button>
-            </div>
+            <div class="shift-types" id="shiftTypesContainer"></div>
 
             <div id="hourlyFields" style="display: none;">
                 <div class="input-group">
@@ -248,31 +315,97 @@
         </div>
     </div>
 
+    <!-- Модалка настроек -->
+    <div class="modal-overlay" id="settingsModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-date">⚙️ Настройки</div>
+                <button class="btn-text" onclick="closeSettings()">✖</button>
+            </div>
+
+            <div style="font-size: 14px; font-weight: bold; margin-bottom: 12px;">Типы смен</div>
+            <div id="typesList"></div>
+            <button class="add-type-btn" onclick="addType()">➕ Добавить тип смены</button>
+            <button class="save-tpl-btn" onclick="resetTypes()">🔄 Сбросить к стандартным типам</button>
+
+            <div style="height: 1px; background: #444; margin: 20px 0;"></div>
+
+            <button class="settings-sync-btn" onclick="syncToCloud()">☁️ Сохранить всё в облако</button>
+            <button class="settings-load-btn" onclick="loadFromCloud()">📥 Загрузить из облака</button>
+        </div>
+    </div>
+
     <script>
+        // --- ТИПЫ СМЕН ПО УМОЛЧАНИЮ ---
+        const DEFAULT_TYPES = [
+            { id: 'red',    name: 'Смена',    color: '#ef4444', mode: 'piece',  builtin: true },
+            { id: 'blue',   name: 'Увязка',   color: '#0ea5e9', mode: 'hourly', builtin: true },
+            { id: 'green',  name: 'Ночь',     color: '#22c55e', mode: 'piece',  builtin: true },
+            { id: 'orange', name: 'Другая',   color: '#f97316', mode: 'piece',  builtin: true },
+            { id: 'purple', name: 'Выходной', color: '#a855f7', mode: 'none',   builtin: true }
+        ];
+
+        const PALETTE = [
+            '#ef4444', '#f97316', '#f59e0b', '#eab308', '#22c55e', '#10b981',
+            '#06b6d4', '#0ea5e9', '#6366f1', '#a855f7', '#ec4899', '#888888'
+        ];
+
+        const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
+
         let currentYear = new Date().getFullYear();
         let currentMonth = new Date().getMonth();
         let selectedDateStr = "";
         let shiftsData = JSON.parse(localStorage.getItem('shiftsData')) || {};
-        const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
+        shiftsData = migrateData(shiftsData);
 
-        const colorHexMap = {
-            red: '#ef4444',
-            blue: '#0ea5e9',
-            green: '#22c55e',
-            orange: '#f97316',
-            purple: '#a855f7'
-        };
-        const colorRgbaMap = {
-            red: 'rgba(239, 68, 68, 0.35)',
-            blue: 'rgba(14, 165, 233, 0.35)',
-            green: 'rgba(34, 197, 94, 0.35)',
-            orange: 'rgba(249, 115, 22, 0.35)',
-            purple: 'rgba(168, 85, 247, 0.35)'
-        };
+        let shiftTypes = JSON.parse(localStorage.getItem('shiftTypes') || 'null');
+        if (!shiftTypes || !Array.isArray(shiftTypes) || shiftTypes.length === 0) {
+            shiftTypes = JSON.parse(JSON.stringify(DEFAULT_TYPES));
+            localStorage.setItem('shiftTypes', JSON.stringify(shiftTypes));
+        }
 
         let tg = window.Telegram.WebApp;
         tg.expand();
         tg.ready();
+
+        // --- УТИЛИТЫ ---
+        function getType(id) {
+            return shiftTypes.find(t => t.id === id) || null;
+        }
+        function getTypeColor(id) {
+            const t = getType(id);
+            return t ? t.color : '#888888';
+        }
+        function hexToRgba(hex, alpha) {
+            if (!hex || hex.length < 7) return `rgba(136,136,136,${alpha})`;
+            const r = parseInt(hex.slice(1,3), 16);
+            const g = parseInt(hex.slice(3,5), 16);
+            const b = parseInt(hex.slice(5,7), 16);
+            return `rgba(${r},${g},${b},${alpha})`;
+        }
+        function migrateData(data) {
+            for (const dateStr in data) {
+                const d = data[dateStr];
+                if (!d) continue;
+                if (d.totalHourly === undefined) d.totalHourly = d.total || 0;
+                if (d.mySharePiece === undefined) d.mySharePiece = d.myShare || 0;
+                if (d.totalAmount === undefined) d.totalAmount = (d.totalHourly || 0) + (d.mySharePiece || 0);
+            }
+            return data;
+        }
+        function saveTypes() {
+            localStorage.setItem('shiftTypes', JSON.stringify(shiftTypes));
+        }
+        function saveShifts() {
+            localStorage.setItem('shiftsData', JSON.stringify(shiftsData));
+        }
+
+        // --- РЕНДЕР ---
+        function renderAll() {
+            renderCalendar();
+            renderBottomPanel();
+            updateSummary();
+        }
 
         function changeMonth(delta) {
             currentMonth += delta;
@@ -303,20 +436,23 @@
                 cell.className = 'day-cell';
                 cell.innerText = d;
                 const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                const data = shiftsData[dateStr];
                 
-                if (shiftsData[dateStr] && shiftsData[dateStr].types.length > 0) {
-                    const types = shiftsData[dateStr].types;
+                if (data && data.types && data.types.length > 0) {
+                    const types = data.types;
                     
                     if (types.length === 1) {
-                        cell.classList.add('shift-' + types[0]);
+                        cell.style.background = hexToRgba(getTypeColor(types[0]), 0.35);
+                        cell.style.border = '1px solid ' + getTypeColor(types[0]);
+                        cell.style.color = '#fff';
                     } else {
                         const step = 100 / types.length;
-                        const stops = types.map((t, i) => `${colorRgbaMap[t]} ${i*step}% ${(i+1)*step}%`).join(', ');
+                        const stops = types.map((t, i) => `${hexToRgba(getTypeColor(t), 0.35)} ${i*step}% ${(i+1)*step}%`).join(', ');
                         cell.style.background = `conic-gradient(${stops})`;
-                        cell.style.border = '1px solid ' + colorHexMap[types[0]];
+                        cell.style.border = '1px solid ' + getTypeColor(types[0]);
+                        cell.style.color = '#fff';
                     }
 
-                    const data = shiftsData[dateStr];
                     if (data.note && data.note.trim()) {
                         const noteIcon = document.createElement('div');
                         noteIcon.className = 'note-icon';
@@ -328,7 +464,8 @@
                     dots.className = 'dots-container';
                     types.forEach(t => {
                         const dot = document.createElement('div');
-                        dot.className = `dot ${t}`;
+                        dot.className = 'dot';
+                        dot.style.background = getTypeColor(t);
                         dots.appendChild(dot);
                     });
                     cell.appendChild(dots);
@@ -345,7 +482,35 @@
                 };
                 grid.appendChild(cell);
             }
-            updateSummary();
+        }
+
+        function renderBottomPanel() {
+            const panel = document.getElementById('bottomPanel');
+            panel.innerHTML = '';
+
+            shiftTypes.forEach(type => {
+                if (type.mode === 'none') return;
+                const box = document.createElement('div');
+                box.className = 'summary-box';
+                box.onclick = () => openDetails(type.id);
+                const title = document.createElement('div');
+                title.className = 'summary-title';
+                title.innerText = type.name;
+                const value = document.createElement('div');
+                value.className = 'summary-value';
+                value.style.color = type.color;
+                value.id = 'sum_' + type.id;
+                value.innerText = '0,0';
+                box.appendChild(title);
+                box.appendChild(value);
+                panel.appendChild(box);
+            });
+
+            const totalBox = document.createElement('div');
+            totalBox.className = 'summary-box';
+            totalBox.onclick = () => openDetails('total');
+            totalBox.innerHTML = '<div class="summary-title">Всего</div><div class="summary-value" id="sum_total">0,0</div>';
+            panel.appendChild(totalBox);
         }
 
         // --- СВАЙП МЕСЯЦЕВ ---
@@ -367,12 +532,12 @@
             }
         }, { passive: true });
 
+        // --- МОДАЛКА ДНЯ ---
         function openModal(dateStr, dayNum) {
             selectedDateStr = dateStr;
             document.getElementById('modalDate').innerText = `${dayNum} ${monthNames[currentMonth].toLowerCase()}`;
             
             document.getElementById('noteInput').value = '';
-            document.querySelectorAll('.type-btn').forEach(btn => btn.classList.remove('active'));
             document.getElementById('hourlyFields').style.display = 'none';
             document.getElementById('pieceFields').style.display = 'none';
             document.getElementById('startTime').value = '';
@@ -383,41 +548,67 @@
             document.getElementById('pieceResult').innerText = 'Сумма: 0 р.';
             document.getElementById('hourlyRate').value = '11.5';
 
+            let activeIds = [];
             if (shiftsData[dateStr]) {
                 const data = shiftsData[dateStr];
+                activeIds = data.types || [];
                 document.getElementById('noteInput').value = data.note || '';
-                if(data.rate) document.getElementById('hourlyRate').value = data.rate;
-                
-                data.types.forEach(type => {
-                    const btn = document.querySelector(`.type-btn[data-type="${type}"]`);
-                    if(btn) btn.classList.add('active');
-                });
-                if (data.types.includes('blue')) {
-                    document.getElementById('hourlyFields').style.display = 'block';
-                    document.getElementById('startTime').value = data.startTime || '';
-                    document.getElementById('endTime').value = data.endTime || '';
-                    calculateHours();
-                }
-                if (data.types.includes('red') || data.types.includes('green') || data.types.includes('orange')) {
-                    document.getElementById('pieceFields').style.display = 'block';
-                    document.getElementById('pieceSum').value = data.pieceSum || '';
-                    document.getElementById('piecePeople').value = data.piecePeople || '';
-                    calculatePiece();
-                }
+                if (data.rate) document.getElementById('hourlyRate').value = data.rate;
+                document.getElementById('startTime').value = data.startTime || '';
+                document.getElementById('endTime').value = data.endTime || '';
+                document.getElementById('pieceSum').value = data.pieceSum || '';
+                document.getElementById('piecePeople').value = data.piecePeople || '';
             }
 
+            renderTypeButtons(activeIds);
+            updateFieldVisibility();
+            calculateHours();
+            calculatePiece();
             renderTemplates();
             document.getElementById('modal').classList.add('active');
         }
 
-        function closeModal() { document.getElementById('modal').classList.remove('active'); }
+        function renderTypeButtons(activeIds) {
+            const container = document.getElementById('shiftTypesContainer');
+            container.innerHTML = '';
+            shiftTypes.forEach(type => {
+                const btn = document.createElement('button');
+                btn.className = 'type-btn';
+                btn.dataset.type = type.id;
+                btn.innerText = type.name;
+                if (activeIds.includes(type.id)) {
+                    btn.classList.add('active');
+                    btn.style.background = type.color;
+                    btn.style.borderColor = type.color;
+                }
+                btn.onclick = () => toggleType(btn);
+                container.appendChild(btn);
+            });
+        }
 
         function toggleType(btn) {
             btn.classList.toggle('active');
-            const activeTypes = Array.from(document.querySelectorAll('.type-btn.active')).map(b => b.dataset.type);
-            document.getElementById('hourlyFields').style.display = activeTypes.includes('blue') ? 'block' : 'none';
-            document.getElementById('pieceFields').style.display = (activeTypes.includes('red') || activeTypes.includes('green') || activeTypes.includes('orange')) ? 'block' : 'none';
+            const type = getType(btn.dataset.type);
+            if (btn.classList.contains('active') && type) {
+                btn.style.background = type.color;
+                btn.style.borderColor = type.color;
+            } else {
+                btn.style.background = '';
+                btn.style.borderColor = '';
+            }
+            updateFieldVisibility();
         }
+
+        function updateFieldVisibility() {
+            const activeIds = Array.from(document.querySelectorAll('.type-btn.active')).map(b => b.dataset.type);
+            const activeTypes = activeIds.map(id => getType(id)).filter(Boolean);
+            const hasHourly = activeTypes.some(t => t.mode === 'hourly');
+            const hasPiece = activeTypes.some(t => t.mode === 'piece');
+            document.getElementById('hourlyFields').style.display = hasHourly ? 'block' : 'none';
+            document.getElementById('pieceFields').style.display = hasPiece ? 'block' : 'none';
+        }
+
+        function closeModal() { document.getElementById('modal').classList.remove('active'); }
 
         function parseTime(timeStr) {
             if (!timeStr) return null;
@@ -439,10 +630,8 @@
             const startVal = document.getElementById('startTime').value;
             const endVal = document.getElementById('endTime').value;
             const rate = parseFloat(document.getElementById('hourlyRate').value) || 11.5;
-            
             const start = parseTime(startVal);
             const end = parseTime(endVal);
-
             if (start && end) {
                 let diff = (end.h * 60 + end.m) - (start.h * 60 + start.m);
                 if (diff < 0) diff += 24 * 60;
@@ -465,68 +654,160 @@
         }
 
         function saveShift() {
-            const activeTypes = Array.from(document.querySelectorAll('.type-btn.active')).map(b => b.dataset.type);
-            if (activeTypes.length === 0) { alert("Выберите хотя бы один тип смены!"); return; }
+            const activeIds = Array.from(document.querySelectorAll('.type-btn.active')).map(b => b.dataset.type);
+            if (activeIds.length === 0) { alert("Выберите хотя бы один тип смены!"); return; }
+
+            const activeTypes = activeIds.map(id => getType(id)).filter(Boolean);
+            const hasHourly = activeTypes.some(t => t.mode === 'hourly');
+            const hasPiece = activeTypes.some(t => t.mode === 'piece');
 
             const data = {
-                types: activeTypes,
+                types: activeIds,
                 note: document.getElementById('noteInput').value,
                 startTime: document.getElementById('startTime').value,
                 endTime: document.getElementById('endTime').value,
                 pieceSum: document.getElementById('pieceSum').value,
                 piecePeople: document.getElementById('piecePeople').value,
-                rate: parseFloat(document.getElementById('hourlyRate').value) || 11.5
+                rate: parseFloat(document.getElementById('hourlyRate').value) || 11.5,
+                hours: 0,
+                totalHourly: 0,
+                mySharePiece: 0,
+                totalAmount: 0
             };
 
-            if (activeTypes.includes('blue')) {
+            if (hasHourly) {
                 const start = parseTime(data.startTime);
                 const end = parseTime(data.endTime);
                 if (start && end) {
                     let diff = (end.h * 60 + end.m) - (start.h * 60 + start.m);
                     if (diff < 0) diff += 24 * 60;
                     data.hours = diff / 60;
-                    data.total = data.hours * data.rate;
+                    data.totalHourly = data.hours * data.rate;
                 }
             }
 
-            if (activeTypes.includes('red') || activeTypes.includes('green') || activeTypes.includes('orange')) {
+            if (hasPiece) {
                 const sum = parseFloat(data.pieceSum) || 0;
                 const people = parseInt(data.piecePeople) || 1;
-                if (sum > 0) data.myShare = sum / people;
+                if (sum > 0) data.mySharePiece = sum / people;
             }
 
+            data.totalAmount = data.totalHourly + data.mySharePiece;
+
             shiftsData[selectedDateStr] = data;
-            localStorage.setItem('shiftsData', JSON.stringify(shiftsData));
+            saveShifts();
             closeModal();
-            renderCalendar();
+            renderAll();
         }
 
         function deleteShift() {
             if (confirm("Удалить смену за этот день?")) {
                 delete shiftsData[selectedDateStr];
-                localStorage.setItem('shiftsData', JSON.stringify(shiftsData));
+                saveShifts();
                 closeModal();
-                renderCalendar();
+                renderAll();
             }
         }
 
         function updateSummary() {
-            let total = 0, day = 0, hourly = 0, night = 0, other = 0;
+            const prefix = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
+
+            shiftTypes.forEach(type => {
+                if (type.mode === 'none') return;
+                let sum = 0;
+                for (const dateStr in shiftsData) {
+                    if (!dateStr.startsWith(prefix)) continue;
+                    const d = shiftsData[dateStr];
+                    if (!d.types || !d.types.includes(type.id)) continue;
+                    if (type.mode === 'hourly') sum += d.totalHourly || 0;
+                    else if (type.mode === 'piece') sum += d.mySharePiece || 0;
+                }
+                const el = document.getElementById('sum_' + type.id);
+                if (el) el.innerText = sum.toFixed(1);
+            });
+
+            let total = 0;
             for (const dateStr in shiftsData) {
-                const data = shiftsData[dateStr];
-                if (!dateStr.startsWith(`${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`)) continue;
-                if (data.types.includes('red')) day += data.myShare || 0;
-                if (data.types.includes('blue')) hourly += data.total || 0;
-                if (data.types.includes('green')) night += data.myShare || 0;
-                if (data.types.includes('orange')) other += data.myShare || 0;
+                if (!dateStr.startsWith(prefix)) continue;
+                total += shiftsData[dateStr].totalAmount || 0;
             }
-            total = day + hourly + night + other;
-            document.getElementById('sumDay').innerText = day.toFixed(1);
-            document.getElementById('sumHourly').innerText = hourly.toFixed(1);
-            document.getElementById('sumNight').innerText = night.toFixed(1);
-            document.getElementById('sumOther').innerText = other.toFixed(1);
-            document.getElementById('sumTotal').innerText = total.toFixed(1);
+            const el = document.getElementById('sum_total');
+            if (el) el.innerText = total.toFixed(1);
             document.getElementById('monthTotal').innerText = `Общая: ${total.toFixed(2)} р.`;
+        }
+
+        // --- ДЕТАЛИЗАЦИЯ ---
+        function openDetails(typeId) {
+            const prefix = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
+            let title = '';
+            const items = [];
+            let total = 0;
+
+            if (typeId === 'total') {
+                title = 'Всего';
+                for (const dateStr in shiftsData) {
+                    if (!dateStr.startsWith(prefix)) continue;
+                    const d = shiftsData[dateStr];
+                    if (!d.totalAmount) continue;
+                    items.push({ day: parseInt(dateStr.split('-')[2]), amount: d.totalAmount, detail: '' });
+                    total += d.totalAmount;
+                }
+            } else {
+                const type = getType(typeId);
+                if (!type) return;
+                title = type.name;
+                for (const dateStr in shiftsData) {
+                    if (!dateStr.startsWith(prefix)) continue;
+                    const d = shiftsData[dateStr];
+                    if (!d.types || !d.types.includes(typeId)) continue;
+
+                    let amount = 0;
+                    let detail = '';
+                    if (type.mode === 'hourly') {
+                        amount = d.totalHourly || 0;
+                        const parts = [];
+                        if (d.startTime && d.endTime) parts.push(`${d.startTime}–${d.endTime}`);
+                        if (d.hours) parts.push(`${d.hours.toFixed(1)} ч`);
+                        if (d.rate) parts.push(`× ${d.rate} р.`);
+                        detail = parts.join(' · ');
+                    } else if (type.mode === 'piece') {
+                        amount = d.mySharePiece || 0;
+                        const parts = [];
+                        if (d.pieceSum) parts.push(`Общая ${d.pieceSum} р.`);
+                        if (d.piecePeople) parts.push(`${d.piecePeople} чел.`);
+                        detail = parts.join(' · ');
+                    }
+                    items.push({ day: parseInt(dateStr.split('-')[2]), amount, detail });
+                    total += amount;
+                }
+            }
+
+            items.sort((a, b) => a.day - b.day);
+
+            document.getElementById('detailsTitle').innerText = title + ' — ' + monthNames[currentMonth] + ' ' + currentYear;
+
+            let html = '';
+            if (items.length === 0) {
+                html = '<div class="empty-details">За этот месяц нет записей по этой категории</div>';
+            } else {
+                items.forEach(it => {
+                    html += `<div class="detail-row">
+                        <div>
+                            <div class="detail-date">${it.day} ${monthNames[currentMonth].toLowerCase()}</div>
+                            ${it.detail ? `<div class="detail-sub">${it.detail}</div>` : ''}
+                        </div>
+                        <span class="detail-amount">${it.amount.toFixed(2)} р.</span>
+                    </div>`;
+                });
+            }
+
+            document.getElementById('detailsList').innerHTML = html;
+            document.getElementById('detailsTotal').innerText = total.toFixed(2) + ' р.';
+            document.getElementById('detailsModal').classList.add('active');
+        }
+
+        function closeDetailsModal() {
+            document.getElementById('detailsModal').classList.remove('active');
         }
 
         // --- ШАБЛОНЫ ---
@@ -556,30 +837,15 @@
                 btn.onclick = () => applyTemplate(idx);
 
                 let pressTimer = null;
-                let longPressed = false;
                 btn.addEventListener('touchstart', () => {
-                    longPressed = false;
-                    pressTimer = setTimeout(() => {
-                        longPressed = true;
-                        deleteTemplate(idx);
-                    }, 700);
+                    pressTimer = setTimeout(() => { pressTimer = null; deleteTemplate(idx); }, 700);
                 }, { passive: true });
-                btn.addEventListener('touchend', () => {
-                    if (pressTimer) clearTimeout(pressTimer);
-                });
-                btn.addEventListener('touchmove', () => {
-                    if (pressTimer) clearTimeout(pressTimer);
-                });
+                btn.addEventListener('touchend', () => { if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; } });
+                btn.addEventListener('touchmove', () => { if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; } });
                 btn.addEventListener('mousedown', () => {
-                    longPressed = false;
-                    pressTimer = setTimeout(() => {
-                        longPressed = true;
-                        deleteTemplate(idx);
-                    }, 700);
+                    pressTimer = setTimeout(() => { pressTimer = null; deleteTemplate(idx); }, 700);
                 });
-                btn.addEventListener('mouseup', () => {
-                    if (pressTimer) clearTimeout(pressTimer);
-                });
+                btn.addEventListener('mouseup', () => { if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; } });
 
                 container.appendChild(btn);
             });
@@ -590,10 +856,21 @@
             const tpl = templates[idx];
             if (!tpl) return;
 
-            document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
-            tpl.types.forEach(t => {
-                const btn = document.querySelector(`.type-btn[data-type="${t}"]`);
-                if (btn) btn.classList.add('active');
+            document.querySelectorAll('.type-btn').forEach(b => {
+                b.classList.remove('active');
+                b.style.background = '';
+                b.style.borderColor = '';
+            });
+            (tpl.types || []).forEach(tId => {
+                const btn = document.querySelector(`.type-btn[data-type="${tId}"]`);
+                if (btn) {
+                    btn.classList.add('active');
+                    const type = getType(tId);
+                    if (type) {
+                        btn.style.background = type.color;
+                        btn.style.borderColor = type.color;
+                    }
+                }
             });
 
             document.getElementById('hourlyRate').value = tpl.rate || '11.5';
@@ -602,23 +879,21 @@
             document.getElementById('pieceSum').value = tpl.pieceSum || '';
             document.getElementById('piecePeople').value = tpl.piecePeople || '';
 
-            document.getElementById('hourlyFields').style.display = tpl.types.includes('blue') ? 'block' : 'none';
-            document.getElementById('pieceFields').style.display = (tpl.types.includes('red') || tpl.types.includes('green') || tpl.types.includes('orange')) ? 'block' : 'none';
-
+            updateFieldVisibility();
             calculateHours();
             calculatePiece();
         }
 
         function saveAsTemplate() {
-            const activeTypes = Array.from(document.querySelectorAll('.type-btn.active')).map(b => b.dataset.type);
-            if (activeTypes.length === 0) { alert('Сначала выбери хотя бы один тип смены'); return; }
+            const activeIds = Array.from(document.querySelectorAll('.type-btn.active')).map(b => b.dataset.type);
+            if (activeIds.length === 0) { alert('Сначала выбери хотя бы один тип смены'); return; }
 
             const name = prompt('Название шаблона:', 'Мой шаблон');
             if (!name || !name.trim()) return;
 
             const newTpl = {
                 name: name.trim(),
-                types: activeTypes,
+                types: activeIds,
                 rate: parseFloat(document.getElementById('hourlyRate').value) || 11.5,
                 startTime: document.getElementById('startTime').value,
                 endTime: document.getElementById('endTime').value,
@@ -629,11 +904,8 @@
             const templates = getTemplates();
             const existingIdx = templates.findIndex(t => t.name === newTpl.name);
             if (existingIdx >= 0) {
-                if (confirm('Шаблон с таким именем уже есть. Перезаписать?')) {
-                    templates[existingIdx] = newTpl;
-                } else {
-                    return;
-                }
+                if (confirm('Шаблон с таким именем уже есть. Перезаписать?')) templates[existingIdx] = newTpl;
+                else return;
             } else {
                 templates.push(newTpl);
             }
@@ -650,94 +922,198 @@
             renderTemplates();
         }
 
-        // --- ДЕТАЛИЗАЦИЯ ПО КАТЕГОРИИ ---
-        function openDetails(type) {
-            const titles = {
-                day: 'Смена',
-                hourly: 'Увязка',
-                night: 'Ночь',
-                other: 'Другая',
-                total: 'Всего'
-            };
-            document.getElementById('detailsTitle').innerText = titles[type] + ' — ' + monthNames[currentMonth] + ' ' + currentYear;
+        // --- НАСТРОЙКИ ---
+        function openSettings() {
+            renderSettingsTypes();
+            document.getElementById('settingsModal').classList.add('active');
+        }
+        function closeSettings() {
+            document.getElementById('settingsModal').classList.remove('active');
+        }
 
-            const prefix = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
-            const entries = [];
-            let total = 0;
+        function renderSettingsTypes() {
+            const list = document.getElementById('typesList');
+            list.innerHTML = '';
 
-            for (const dateStr in shiftsData) {
-                if (!dateStr.startsWith(prefix)) continue;
-                const data = shiftsData[dateStr];
-                const types = data.types || [];
-                const share = data.myShare || 0;
-                const hourly = data.total || 0;
-                let amount = 0;
-                let include = false;
+            shiftTypes.forEach(type => {
+                const item = document.createElement('div');
+                item.className = 'type-item';
 
-                if (type === 'day' && types.includes('red')) { amount = share; include = true; }
-                else if (type === 'hourly' && types.includes('blue')) { amount = hourly; include = true; }
-                else if (type === 'night' && types.includes('green')) { amount = share; include = true; }
-                else if (type === 'other' && types.includes('orange')) { amount = share; include = true; }
-                else if (type === 'total') {
-                    if (types.includes('red')) amount += share;
-                    if (types.includes('blue')) amount += hourly;
-                    if (types.includes('green')) amount += share;
-                    if (types.includes('orange')) amount += share;
-                    include = true;
+                const header = document.createElement('div');
+                header.className = 'type-item-header';
+
+                const nameInput = document.createElement('input');
+                nameInput.className = 'type-name-input';
+                nameInput.value = type.name;
+                nameInput.onchange = () => updateTypeName(type.id, nameInput.value);
+
+                header.appendChild(nameInput);
+
+                if (!type.builtin) {
+                    const delBtn = document.createElement('button');
+                    delBtn.className = 'icon-delete';
+                    delBtn.innerText = '🗑️';
+                    delBtn.onclick = () => deleteType(type.id);
+                    header.appendChild(delBtn);
                 }
 
-                if (include) {
-                    entries.push({ day: parseInt(dateStr.split('-')[2]), amount });
-                    total += amount;
-                }
-            }
+                item.appendChild(header);
 
-            entries.sort((a, b) => a.day - b.day);
-
-            let html = '';
-            if (entries.length === 0) {
-                html = '<div class="empty-details">За этот месяц нет записей по этой категории</div>';
-            } else {
-                entries.forEach(e => {
-                    html += `<div class="detail-row">
-                        <span class="detail-date">${e.day} ${monthNames[currentMonth].toLowerCase()}</span>
-                        <span class="detail-amount">${e.amount.toFixed(2)} р.</span>
-                    </div>`;
+                const picker = document.createElement('div');
+                picker.className = 'color-picker';
+                PALETTE.forEach(c => {
+                    const dot = document.createElement('span');
+                    dot.className = 'color-dot';
+                    dot.style.background = c;
+                    if (c === type.color) dot.classList.add('selected');
+                    dot.onclick = () => setTypeColor(type.id, c);
+                    picker.appendChild(dot);
                 });
-            }
+                item.appendChild(picker);
 
-            document.getElementById('detailsList').innerHTML = html;
-            document.getElementById('detailsTotal').innerText = total.toFixed(2) + ' р.';
-            document.getElementById('detailsModal').classList.add('active');
-        }
+                const select = document.createElement('select');
+                select.className = 'type-mode-select';
+                select.innerHTML = `
+                    <option value="hourly">Почасовой (время + ставка)</option>
+                    <option value="piece">Сдельный (сумма / люди)</option>
+                    <option value="none">Без оплаты (выходной)</option>
+                `;
+                select.value = type.mode;
+                select.onchange = () => setTypeMode(type.id, select.value);
+                item.appendChild(select);
 
-        function closeDetailsModal() {
-            document.getElementById('detailsModal').classList.remove('active');
-        }
-
-        // --- СИНХРОНИЗАЦИЯ С ОБЛАКОМ TELEGRAM ---
-        function syncToCloud() {
-            tg.CloudStorage.setItem('shiftsData', JSON.stringify(shiftsData), (err, ok) => {
-                if (ok) {
-                    tg.showAlert('Сохранено в облако Telegram!');
-                } else {
-                    tg.showAlert('Ошибка сохранения: ' + (err ? err.message : 'неизвестно'));
-                }
+                list.appendChild(item);
             });
         }
 
-        // --- ЗАГРУЗКА ИЗ ОБЛАКА ПРИ СТАРТЕ ---
-        tg.CloudStorage.getItem('shiftsData', (err, value) => {
-            if (value) {
-                try {
-                    shiftsData = JSON.parse(value);
-                    localStorage.setItem('shiftsData', JSON.stringify(shiftsData));
-                } catch (e) {
-                    console.error('Ошибка парсинга данных из облака', e);
-                }
+        function updateTypeName(id, name) {
+            const t = getType(id);
+            if (!t) return;
+            t.name = name.trim() || t.name;
+            saveTypes();
+            renderAll();
+            renderSettingsTypes();
+        }
+
+        function setTypeColor(id, color) {
+            const t = getType(id);
+            if (!t) return;
+            t.color = color;
+            saveTypes();
+            renderAll();
+            renderSettingsTypes();
+        }
+
+        function setTypeMode(id, mode) {
+            const t = getType(id);
+            if (!t) return;
+            t.mode = mode;
+            saveTypes();
+            renderAll();
+        }
+
+        function addType() {
+            const name = prompt('Название нового типа:', 'Новый тип');
+            if (!name || !name.trim()) return;
+            const id = 'type_' + Date.now();
+            shiftTypes.push({ id, name: name.trim(), color: '#888888', mode: 'piece', builtin: false });
+            saveTypes();
+            renderSettingsTypes();
+            renderAll();
+        }
+
+        function deleteType(id) {
+            if (!confirm('Удалить этот тип? Дни, где он использовался, останутся, но тип пропадёт из списка и панели.')) return;
+            shiftTypes = shiftTypes.filter(t => t.id !== id);
+            saveTypes();
+            renderSettingsTypes();
+            renderAll();
+        }
+
+        function resetTypes() {
+            if (!confirm('Сбросить все типы к стандартным? Кастомные типы будут удалены, цвета сброшены.')) return;
+            shiftTypes = JSON.parse(JSON.stringify(DEFAULT_TYPES));
+            saveTypes();
+            renderSettingsTypes();
+            renderAll();
+        }
+
+        // --- ОБЛАКО ---
+        function cloudSet(key, value) {
+            return new Promise((resolve, reject) => {
+                tg.CloudStorage.setItem(key, value, (err, ok) => {
+                    if (err) reject(err); else resolve(ok);
+                });
+            });
+        }
+        function cloudGet(key) {
+            return new Promise((resolve) => {
+                tg.CloudStorage.getItem(key, (err, value) => resolve(value));
+            });
+        }
+
+        async function syncToCloud() {
+            try {
+                await cloudSet('shiftsData', JSON.stringify(shiftsData));
+                await cloudSet('shiftTypes', JSON.stringify(shiftTypes));
+                await cloudSet('shiftTemplates', localStorage.getItem('shiftTemplates') || '[]');
+                tg.showAlert('Всё сохранено в облако Telegram!');
+            } catch (e) {
+                tg.showAlert('Ошибка сохранения: ' + (e && e.message ? e.message : 'неизвестно'));
             }
-            renderCalendar();
-        });
+        }
+
+        async function loadFromCloud() {
+            if (!confirm('Загрузить данные из облака? Локальные данные будут перезаписаны.')) return;
+            try {
+                const dataStr = await cloudGet('shiftsData');
+                const typesStr = await cloudGet('shiftTypes');
+                const tplStr = await cloudGet('shiftTemplates');
+                if (dataStr) {
+                    shiftsData = migrateData(JSON.parse(dataStr));
+                    saveShifts();
+                }
+                if (typesStr) {
+                    shiftTypes = JSON.parse(typesStr);
+                    saveTypes();
+                }
+                if (tplStr) {
+                    localStorage.setItem('shiftTemplates', tplStr);
+                }
+                renderAll();
+                renderSettingsTypes();
+                tg.showAlert('Загружено из облака!');
+            } catch (e) {
+                tg.showAlert('Ошибка загрузки: ' + (e && e.message ? e.message : 'неизвестно'));
+            }
+        }
+
+        // --- СТАРТ ---
+        renderBottomPanel();
+        renderCalendar();
+        updateSummary();
+
+        (async () => {
+            try {
+                const dataStr = await cloudGet('shiftsData');
+                const typesStr = await cloudGet('shiftTypes');
+                const tplStr = await cloudGet('shiftTemplates');
+                if (dataStr) {
+                    shiftsData = migrateData(JSON.parse(dataStr));
+                    saveShifts();
+                }
+                if (typesStr) {
+                    shiftTypes = JSON.parse(typesStr);
+                    saveTypes();
+                }
+                if (tplStr) {
+                    localStorage.setItem('shiftTemplates', tplStr);
+                }
+            } catch (e) {
+                console.error('Ошибка загрузки из облака', e);
+            }
+            renderAll();
+        })();
     </script>
 </body>
 </html>
