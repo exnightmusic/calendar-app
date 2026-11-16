@@ -240,7 +240,7 @@
             height: 26px;
             border-radius: 50%;
             cursor: pointer;
-            border: 2px solid transparent;
+            border: 2px solid rgba(255,255,255,0.2);
             transition: transform 0.1s, box-shadow 0.15s;
         }
         .color-dot:active { transform: scale(0.85); }
@@ -411,7 +411,7 @@
     <div class="header">
         <div class="month-title" id="currentMonth">Месяц</div>
         <div class="month-total-row">
-            <div class="total-month" id="monthTotal">Общая: 0 р.</div>
+            <div class="total-month" id="monthTotal">Итого за месяц: 0 р.</div>
             <button class="settings-btn" onclick="openSettings()">⚙️</button>
         </div>
     </div>
@@ -493,7 +493,7 @@
             </div>
             <div id="detailsList"></div>
             <div class="details-total">
-                <span>Итого:</span>
+                <span>Итого за месяц:</span>
                 <span id="detailsTotal">0 р.</span>
             </div>
         </div>
@@ -528,7 +528,8 @@
         ];
         const PALETTE = [
             '#ef4444', '#f97316', '#f59e0b', '#eab308', '#22c55e', '#10b981',
-            '#06b6d4', '#0ea5e9', '#6366f1', '#a855f7', '#ec4899', '#888888'
+            '#06b6d4', '#0ea5e9', '#6366f1', '#a855f7', '#ec4899', '#888888',
+            '#ffffff'
         ];
         const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
 
@@ -571,6 +572,10 @@
         }
         function saveTypes() { localStorage.setItem('shiftTypes', JSON.stringify(shiftTypes)); }
         function saveShifts() { localStorage.setItem('shiftsData', JSON.stringify(shiftsData)); }
+
+        function getMonthPrefix() {
+            return `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
+        }
 
         // ===== TOASTS И CONFIRM =====
         function showToast(message, type = 'success') {
@@ -629,7 +634,7 @@
             currentMonth += delta;
             if (currentMonth > 11) { currentMonth = 0; currentYear++; }
             if (currentMonth < 0) { currentMonth = 11; currentYear--; }
-            renderCalendar();
+            renderAll();
             animateGrid(delta);
         }
 
@@ -808,6 +813,7 @@
                     btn.classList.add('active');
                     btn.style.background = type.color;
                     btn.style.borderColor = type.color;
+                    if (type.color === '#ffffff') btn.style.color = '#1a1a1a';
                 }
                 btn.onclick = () => toggleType(btn);
                 container.appendChild(btn);
@@ -820,9 +826,11 @@
             if (btn.classList.contains('active') && type) {
                 btn.style.background = type.color;
                 btn.style.borderColor = type.color;
+                btn.style.color = (type.color === '#ffffff') ? '#1a1a1a' : '#ffffff';
             } else {
                 btn.style.background = '';
                 btn.style.borderColor = '';
+                btn.style.color = '';
             }
             updateFieldVisibility();
         }
@@ -937,8 +945,9 @@
         }
 
         function updateSummary() {
-            const prefix = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
+            const prefix = getMonthPrefix();
 
+            // Сумма по каждому типу — только за текущий месяц
             shiftTypes.forEach(type => {
                 if (type.mode === 'none') return;
                 let sum = 0;
@@ -953,6 +962,7 @@
                 if (el) el.innerText = sum.toFixed(1);
             });
 
+            // Общая сумма — только за текущий месяц
             let total = 0;
             for (const dateStr in shiftsData) {
                 if (!dateStr.startsWith(prefix)) continue;
@@ -960,12 +970,12 @@
             }
             const el = document.getElementById('sum_total');
             if (el) el.innerText = total.toFixed(1);
-            document.getElementById('monthTotal').innerText = `Общая: ${total.toFixed(2)} р.`;
+            document.getElementById('monthTotal').innerText = `${monthNames[currentMonth]}: ${total.toFixed(2)} р.`;
         }
 
         // ===== ДЕТАЛИЗАЦИЯ =====
         function openDetails(typeId) {
-            const prefix = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
+            const prefix = getMonthPrefix();
             let title = '';
             const items = [];
             let total = 0;
@@ -1079,13 +1089,18 @@
                 b.classList.remove('active');
                 b.style.background = '';
                 b.style.borderColor = '';
+                b.style.color = '';
             });
             (tpl.types || []).forEach(tId => {
                 const btn = document.querySelector(`.type-btn[data-type="${tId}"]`);
                 if (btn) {
                     btn.classList.add('active');
                     const type = getType(tId);
-                    if (type) { btn.style.background = type.color; btn.style.borderColor = type.color; }
+                    if (type) {
+                        btn.style.background = type.color;
+                        btn.style.borderColor = type.color;
+                        btn.style.color = (type.color === '#ffffff') ? '#1a1a1a' : '#ffffff';
+                    }
                 }
             });
 
@@ -1295,9 +1310,7 @@
         }
 
         // ===== СТАРТ =====
-        renderBottomPanel();
-        renderCalendar();
-        updateSummary();
+        renderAll();
 
         (async () => {
             try {
