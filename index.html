@@ -18,101 +18,41 @@
             --accent-purple: #a855f7;
             --border-color: #444444;
         }
-
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
-        body {
-            margin: 0;
-            padding: 15px;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            padding-bottom: 80px;
-        }
-
+        body { margin: 0; padding: 15px; font-family: -apple-system, BlinkMacSystemFont, sans-serif; background-color: var(--bg-color); color: var(--text-main); padding-bottom: 80px; }
         .header { text-align: center; margin-bottom: 15px; }
         .nav-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
         .nav-btn { background: rgba(255,255,255,0.1); border: none; color: white; font-size: 18px; padding: 5px 15px; border-radius: 8px; cursor: pointer; }
         .month-title { font-size: 20px; font-weight: bold; }
         .total-month { display: inline-block; background-color: rgba(255,255,255,0.1); padding: 4px 12px; border-radius: 20px; font-size: 14px; color: #ccc; }
-
         .weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 12px; color: var(--text-muted); margin-bottom: 10px; }
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
-        
-        .day-cell {
-            aspect-ratio: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            font-size: 14px;
-            cursor: pointer;
-            position: relative;
-            background-color: transparent;
-            transition: all 0.2s;
-        }
+        .day-cell { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 50%; font-size: 14px; cursor: pointer; position: relative; background-color: transparent; transition: all 0.2s; }
         .day-cell.empty { pointer-events: none; }
-        
         .day-cell.shift-red { background-color: rgba(239, 68, 68, 0.2); color: #fff; border: 1px solid #ef4444; }
         .day-cell.shift-blue { background-color: rgba(14, 165, 233, 0.2); color: #fff; border: 1px solid #0ea5e9; }
         .day-cell.shift-green { background-color: rgba(34, 197, 94, 0.2); color: #fff; border: 1px solid #22c55e; }
         .day-cell.shift-orange { background-color: rgba(249, 115, 22, 0.2); color: #fff; border: 1px solid #f97316; }
         .day-cell.shift-purple { background-color: rgba(168, 85, 247, 0.2); color: #fff; border: 1px solid #a855f7; }
-        
         .day-cell.today { border: 2px solid white; }
-        
         .dots-container { display: flex; gap: 2px; position: absolute; bottom: 2px; }
         .dot { width: 4px; height: 4px; border-radius: 50%; }
-        .dot.red { background: var(--accent-red); }
-        .dot.blue { background: var(--accent-blue); }
-        .dot.green { background: var(--accent-green); }
-        .dot.orange { background: var(--accent-orange); }
-        .dot.purple { background: var(--accent-purple); }
-
-        .bottom-panel {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background: var(--bg-color);
-            border-top: 1px solid #333;
-            display: flex;
-            padding: 10px;
-            gap: 5px;
-            overflow-x: auto;
-        }
+        .dot.red { background: var(--accent-red); } .dot.blue { background: var(--accent-blue); } .dot.green { background: var(--accent-green); } .dot.orange { background: var(--accent-orange); } .dot.purple { background: var(--accent-purple); }
+        .bottom-panel { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--bg-color); border-top: 1px solid #333; display: flex; padding: 10px; gap: 5px; overflow-x: auto; }
         .summary-box { flex: 1; text-align: center; background: var(--card-bg); padding: 8px 5px; border-radius: 8px; min-width: 70px; }
         .summary-title { font-size: 10px; color: var(--text-muted); }
         .summary-value { font-size: 14px; font-weight: bold; margin-top: 2px; }
-        .summary-value.red { color: var(--accent-red); }
-        .summary-value.blue { color: var(--accent-blue); }
-        .summary-value.green { color: var(--accent-green); }
-        .summary-value.orange { color: var(--accent-orange); }
-
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.7);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-            padding: 15px;
-        }
+        .summary-value.red { color: var(--accent-red); } .summary-value.blue { color: var(--accent-blue); } .summary-value.green { color: var(--accent-green); } .summary-value.orange { color: var(--accent-orange); }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center; padding: 15px; }
         .modal-overlay.active { display: flex; }
-        
         .modal { background: var(--card-bg); width: 100%; max-width: 400px; max-height: 90vh; overflow-y: auto; border-radius: 16px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .modal-date { font-size: 20px; font-weight: bold; }
-        
         .input-group { margin-bottom: 15px; position: relative; }
         .input-group label { position: absolute; top: -8px; left: 10px; background: var(--card-bg); padding: 0 4px; font-size: 12px; color: var(--text-muted); }
         .input-group input { width: 100%; background: transparent; border: 1px solid var(--border-color); color: white; padding: 12px; border-radius: 8px; font-size: 16px; outline: none; font-family: inherit; }
         .input-group input:focus { border-color: var(--accent-blue); }
-
         .computed-sum { text-align: center; font-weight: bold; margin: 5px 0 15px 0; font-size: 14px; }
-
         .shift-types { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
         .type-btn { flex: 1 1 30%; padding: 10px; background: transparent; border: 1px solid var(--border-color); color: white; border-radius: 8px; font-size: 14px; cursor: pointer; }
         .type-btn.active { background: var(--accent-red); border-color: var(--accent-red); }
@@ -120,11 +60,11 @@
         .type-btn.active[data-type="green"] { background: var(--accent-green); border-color: var(--accent-green); }
         .type-btn.active[data-type="orange"] { background: var(--accent-orange); border-color: var(--accent-orange); }
         .type-btn.active[data-type="purple"] { background: var(--accent-purple); border-color: var(--accent-purple); }
-
         .modal-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; }
         .btn-text { background: none; border: none; color: var(--text-muted); font-size: 16px; cursor: pointer; }
         .btn-save { background: #444; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: bold;}
         .btn-delete { color: var(--accent-red); font-size: 16px; background: none; border: none; cursor: pointer; font-weight: bold;}
+        .sync-btn { background: #0ea5e9; color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-size: 16px; font-weight: bold; margin-top: 20px; margin-bottom: 80px; cursor: pointer;}
     </style>
 </head>
 <body>
@@ -143,6 +83,9 @@
     </div>
     
     <div class="calendar-grid" id="calendarGrid"></div>
+
+    <!-- Кнопка синхронизации (перенесена вниз под календарь, чтобы не мешала) -->
+    <button class="sync-btn" onclick="syncToBot()">☁️ Сохранить в облако (в бота)</button>
 
     <div class="bottom-panel">
         <div class="summary-box"><div class="summary-title">Смена</div><div class="summary-value red" id="sumDay">0,0</div></div>
@@ -170,11 +113,15 @@
 
             <div id="hourlyFields" style="display: none;">
                 <div class="input-group">
-                    <label>Начало (ЧЧ:ММ или ЧЧ.ММ)</label>
+                    <label>Ставка за час (р.)</label>
+                    <input type="number" id="hourlyRate" value="11.5" step="0.1" oninput="calculateHours()">
+                </div>
+                <div class="input-group">
+                    <label>Начало (ЧЧ:ММ)</label>
                     <input type="text" id="startTime" placeholder="07:40" oninput="calculateHours()">
                 </div>
                 <div class="input-group">
-                    <label>Конец (ЧЧ:ММ или ЧЧ.ММ)</label>
+                    <label>Конец (ЧЧ:ММ)</label>
                     <input type="text" id="endTime" placeholder="19:40" oninput="calculateHours()">
                 </div>
                 <div class="computed-sum" id="hourlySum">Часов: 0, Сумма: 0 р.</div>
@@ -192,7 +139,6 @@
                 <div class="computed-sum" id="pieceResult">Сумма: 0 р.</div>
             </div>
 
-            <!-- Заметка перенесена сюда (вниз) -->
             <div class="input-group" style="margin-top: 20px;">
                 <label>Заметка</label>
                 <input type="text" id="noteInput" placeholder="Введите текст...">
@@ -232,7 +178,6 @@
             const firstDay = new Date(currentYear, currentMonth, 1);
             const lastDay = new Date(currentYear, currentMonth + 1, 0);
             const daysInMonth = lastDay.getDate();
-            
             let startDayOfWeek = firstDay.getDay();
             if (startDayOfWeek === 0) startDayOfWeek = 7;
 
@@ -257,7 +202,6 @@
                     else if (types.includes('purple')) colorClass = 'shift-purple';
                     
                     cell.classList.add(colorClass);
-                    
                     const dots = document.createElement('div');
                     dots.className = 'dots-container';
                     types.forEach(t => {
@@ -293,10 +237,13 @@
             document.getElementById('piecePeople').value = '';
             document.getElementById('hourlySum').innerText = 'Часов: 0, Сумма: 0 р.';
             document.getElementById('pieceResult').innerText = 'Сумма: 0 р.';
+            document.getElementById('hourlyRate').value = '11.5';
 
             if (shiftsData[dateStr]) {
                 const data = shiftsData[dateStr];
                 document.getElementById('noteInput').value = data.note || '';
+                if(data.rate) document.getElementById('hourlyRate').value = data.rate;
+                
                 data.types.forEach(type => {
                     const btn = document.querySelector(`.type-btn[data-type="${type}"]`);
                     if(btn) btn.classList.add('active');
@@ -326,13 +273,12 @@
             document.getElementById('pieceFields').style.display = (activeTypes.includes('red') || activeTypes.includes('green') || activeTypes.includes('orange')) ? 'block' : 'none';
         }
 
-        // Вспомогательная функция для парсинга времени (поддерживает 19:20, 19.20, 1920)
         function parseTime(timeStr) {
             if (!timeStr) return null;
-            let t = timeStr.trim().replace('.', ':'); // Меняем точку на двоеточие
+            let t = timeStr.trim().replace('.', ':');
             if (!t.includes(':')) {
-                if (t.length === 4) t = t.substring(0, 2) + ':' + t.substring(2); // 1920 -> 19:20
-                else if (t.length === 3) t = t.substring(0, 1) + ':' + t.substring(1); // 920 -> 9:20
+                if (t.length === 4) t = t.substring(0, 2) + ':' + t.substring(2);
+                else if (t.length === 3) t = t.substring(0, 1) + ':' + t.substring(1);
                 else return null;
             }
             const parts = t.split(':');
@@ -346,17 +292,16 @@
         function calculateHours() {
             const startVal = document.getElementById('startTime').value;
             const endVal = document.getElementById('endTime').value;
+            const rate = parseFloat(document.getElementById('hourlyRate').value) || 11.5;
             
             const start = parseTime(startVal);
             const end = parseTime(endVal);
 
             if (start && end) {
                 let diff = (end.h * 60 + end.m) - (start.h * 60 + start.m);
-                if (diff < 0) diff += 24 * 60; // Если ночная смена через полночь
-                
+                if (diff < 0) diff += 24 * 60;
                 const hours = diff / 60;
-                const sum = hours * 11.5;
-                
+                const sum = hours * rate;
                 document.getElementById('hourlySum').innerText = `Отработано: ${hours.toFixed(2)} ч. Сумма: ${sum.toFixed(2)} р.`;
             } else {
                 document.getElementById('hourlySum').innerText = 'Часов: 0, Сумма: 0 р.';
@@ -383,7 +328,8 @@
                 startTime: document.getElementById('startTime').value,
                 endTime: document.getElementById('endTime').value,
                 pieceSum: document.getElementById('pieceSum').value,
-                piecePeople: document.getElementById('piecePeople').value
+                piecePeople: document.getElementById('piecePeople').value,
+                rate: parseFloat(document.getElementById('hourlyRate').value) || 11.5
             };
 
             if (activeTypes.includes('blue')) {
@@ -393,7 +339,7 @@
                     let diff = (end.h * 60 + end.m) - (start.h * 60 + start.m);
                     if (diff < 0) diff += 24 * 60;
                     data.hours = diff / 60;
-                    data.total = data.hours * 11.5;
+                    data.total = data.hours * data.rate;
                 }
             }
 
@@ -437,7 +383,27 @@
             document.getElementById('monthTotal').innerText = `Общая: ${total.toFixed(2)} р.`;
         }
 
-        // Старт
+        // --- СИНХРОНИЗАЦИЯ С БОТОМ ---
+        function syncToBot() {
+            // Внимание: для локального теста
+            fetch('http://localhost:8080/api/shifts', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(shiftsData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'ok') {
+                    tg.showAlert("Данные успешно сохранены в бота!");
+                } else {
+                    tg.showAlert("Ошибка: " + data.message);
+                }
+            })
+            .catch(error => {
+                tg.showAlert("Ошибка сети! Убедись, что бот запущен на компьютере.");
+            });
+        }
+
         renderCalendar();
     </script>
 </body>
