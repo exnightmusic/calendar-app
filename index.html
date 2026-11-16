@@ -54,7 +54,6 @@
         }
         .day-cell.empty { pointer-events: none; }
         
-        /* Цвета кружков */
         .day-cell.shift-red { background-color: rgba(239, 68, 68, 0.2); color: #fff; border: 1px solid #ef4444; }
         .day-cell.shift-blue { background-color: rgba(14, 165, 233, 0.2); color: #fff; border: 1px solid #0ea5e9; }
         .day-cell.shift-green { background-color: rgba(34, 197, 94, 0.2); color: #fff; border: 1px solid #22c55e; }
@@ -159,10 +158,7 @@
                 <div class="modal-date" id="modalDate">10 ноября</div>
                 <button class="btn-text" onclick="closeModal()">✖</button>
             </div>
-            <div class="input-group">
-                <label>Заметка</label>
-                <input type="text" id="noteInput" placeholder="Введите текст...">
-            </div>
+            
             <div style="font-size: 14px; margin-bottom: 10px; font-weight: bold;">Тип смены (можно несколько):</div>
             <div class="shift-types">
                 <button class="type-btn" data-type="red" onclick="toggleType(this)">Смена</button>
@@ -171,17 +167,19 @@
                 <button class="type-btn" data-type="orange" onclick="toggleType(this)">Другая</button>
                 <button class="type-btn" data-type="purple" onclick="toggleType(this)">Выходной</button>
             </div>
+
             <div id="hourlyFields" style="display: none;">
                 <div class="input-group">
-                    <label>Начало (ЧЧ:ММ)</label>
+                    <label>Начало (ЧЧ:ММ или ЧЧ.ММ)</label>
                     <input type="text" id="startTime" placeholder="07:40" oninput="calculateHours()">
                 </div>
                 <div class="input-group">
-                    <label>Конец (ЧЧ:ММ)</label>
+                    <label>Конец (ЧЧ:ММ или ЧЧ.ММ)</label>
                     <input type="text" id="endTime" placeholder="19:40" oninput="calculateHours()">
                 </div>
                 <div class="computed-sum" id="hourlySum">Часов: 0, Сумма: 0 р.</div>
             </div>
+
             <div id="pieceFields" style="display: none;">
                 <div class="input-group">
                     <label>Сумма (общая)</label>
@@ -193,6 +191,13 @@
                 </div>
                 <div class="computed-sum" id="pieceResult">Сумма: 0 р.</div>
             </div>
+
+            <!-- Заметка перенесена сюда (вниз) -->
+            <div class="input-group" style="margin-top: 20px;">
+                <label>Заметка</label>
+                <input type="text" id="noteInput" placeholder="Введите текст...">
+            </div>
+
             <div class="modal-actions">
                 <button class="btn-delete" id="btnDelete" onclick="deleteShift()">Удалить</button>
                 <button class="btn-text" onclick="closeModal()">Отмена</button>
@@ -212,7 +217,6 @@
         tg.expand();
         tg.ready();
 
-        // --- ФУНКЦИИ ---
         function changeMonth(delta) {
             currentMonth += delta;
             if (currentMonth > 11) { currentMonth = 0; currentYear++; }
@@ -322,17 +326,40 @@
             document.getElementById('pieceFields').style.display = (activeTypes.includes('red') || activeTypes.includes('green') || activeTypes.includes('orange')) ? 'block' : 'none';
         }
 
+        // Вспомогательная функция для парсинга времени (поддерживает 19:20, 19.20, 1920)
+        function parseTime(timeStr) {
+            if (!timeStr) return null;
+            let t = timeStr.trim().replace('.', ':'); // Меняем точку на двоеточие
+            if (!t.includes(':')) {
+                if (t.length === 4) t = t.substring(0, 2) + ':' + t.substring(2); // 1920 -> 19:20
+                else if (t.length === 3) t = t.substring(0, 1) + ':' + t.substring(1); // 920 -> 9:20
+                else return null;
+            }
+            const parts = t.split(':');
+            if (parts.length !== 2) return null;
+            const h = parseInt(parts[0]);
+            const m = parseInt(parts[1]);
+            if (isNaN(h) || isNaN(m)) return null;
+            return { h, m };
+        }
+
         function calculateHours() {
-            const start = document.getElementById('startTime').value;
-            const end = document.getElementById('endTime').value;
-            if (start && end && start.includes(':') && end.includes(':')) {
-                const [h1, m1] = start.split(':').map(Number);
-                const [h2, m2] = end.split(':').map(Number);
-                let diff = (h2 * 60 + m2) - (h1 * 60 + m1);
-                if (diff < 0) diff += 24 * 60;
+            const startVal = document.getElementById('startTime').value;
+            const endVal = document.getElementById('endTime').value;
+            
+            const start = parseTime(startVal);
+            const end = parseTime(endVal);
+
+            if (start && end) {
+                let diff = (end.h * 60 + end.m) - (start.h * 60 + start.m);
+                if (diff < 0) diff += 24 * 60; // Если ночная смена через полночь
+                
                 const hours = diff / 60;
                 const sum = hours * 11.5;
+                
                 document.getElementById('hourlySum').innerText = `Отработано: ${hours.toFixed(2)} ч. Сумма: ${sum.toFixed(2)} р.`;
+            } else {
+                document.getElementById('hourlySum').innerText = 'Часов: 0, Сумма: 0 р.';
             }
         }
 
@@ -360,11 +387,10 @@
             };
 
             if (activeTypes.includes('blue')) {
-                const start = data.startTime, end = data.endTime;
-                if (start && end && start.includes(':') && end.includes(':')) {
-                    const [h1, m1] = start.split(':').map(Number);
-                    const [h2, m2] = end.split(':').map(Number);
-                    let diff = (h2 * 60 + m2) - (h1 * 60 + m1);
+                const start = parseTime(data.startTime);
+                const end = parseTime(data.endTime);
+                if (start && end) {
+                    let diff = (end.h * 60 + end.m) - (start.h * 60 + start.m);
                     if (diff < 0) diff += 24 * 60;
                     data.hours = diff / 60;
                     data.total = data.hours * 11.5;
