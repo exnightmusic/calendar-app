@@ -12,26 +12,30 @@
             --text-main: #ffffff;
             --text-muted: #888888;
             --border-color: #444444;
+
+            /* Акцент меняется из настроек */
             --accent: #0ea5e9;
             --accent2: #a855f7;
             --gradient: linear-gradient(135deg, #0ea5e9, #a855f7);
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { 
-            margin: 0; 
-            padding: 15px; 
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif; 
-            background-color: var(--bg-color); 
-            color: var(--text-main); 
-            padding-bottom: 80px; 
-            overflow-x: hidden; 
+        body {
+            margin: 0;
+            padding: 15px;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding-bottom: 80px;
+            overflow-x: hidden;
         }
 
+        /* ===== HEADER с shimmer ===== */
         .header { text-align: center; margin-bottom: 15px; }
         .month-title {
             font-size: 24px;
             font-weight: 800;
             background: var(--gradient);
+            background-size: 200% auto;
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
@@ -40,9 +44,37 @@
             margin-bottom: 8px;
             user-select: none;
             -webkit-user-select: none;
+            position: relative;
+            display: inline-block;
         }
+        .month-title::after {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(100deg, transparent 20%, rgba(255,255,255,0.85) 50%, transparent 80%);
+            background-size: 200% 100%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            -webkit-text-fill-color: transparent;
+            animation: shimmer 3.5s linear infinite;
+            pointer-events: none;
+        }
+        @keyframes shimmer {
+            0%   { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
         .month-total-row { display: flex; justify-content: center; align-items: center; gap: 10px; }
-        .total-month { display: inline-block; background-color: rgba(255,255,255,0.08); padding: 5px 14px; border-radius: 20px; font-size: 14px; color: #ccc; border: 1px solid rgba(255,255,255,0.05); }
+        .total-month {
+            display: inline-block;
+            background-color: rgba(255,255,255,0.08);
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 14px;
+            color: #ccc;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
         .settings-btn {
             background: var(--gradient);
             color: white;
@@ -51,22 +83,22 @@
             border-radius: 20px;
             font-size: 16px;
             cursor: pointer;
-            box-shadow: 0 4px 12px rgba(14,165,233,0.3);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.35);
             transition: transform 0.1s;
         }
         .settings-btn:active { transform: scale(0.9); }
 
-        .weekdays { 
-            display: grid; 
-            grid-template-columns: repeat(7, minmax(0, 1fr)); 
-            text-align: center; 
-            font-size: 12px; 
-            color: var(--text-muted); 
-            margin-bottom: 10px; 
+        .weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 10px;
         }
         .weekend-label { color: rgba(239, 68, 68, 0.7); }
 
-        /* Карусель: обрезаем строго по границам через contain: paint */
+        /* ===== Календарь ===== */
         .calendar-viewport {
             width: 100%;
             overflow: hidden;
@@ -77,61 +109,69 @@
             clip-path: inset(0);
             -webkit-clip-path: inset(0);
         }
-
-        /* Трек 100% ширины, но его дочерние элементы выходят за границы вправо.
-           При translateX(-100%) показывается средний месяц. */
-        .calendar-track {
-            display: flex;
-            width: 100%;
-        }
+        .calendar-track { display: flex; width: 100%; }
         .calendar-grid {
             flex: 0 0 100%;
             width: 100%;
             display: grid;
             grid-template-columns: repeat(7, minmax(0, 1fr));
-            gap: 5px;
+            gap: 6px;
         }
 
+        /* Квадратные ячейки со скруглением 12px */
         .day-cell {
             aspect-ratio: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            border-radius: 50%;
-            font-size: 14px;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
             cursor: pointer;
             position: relative;
-            background-color: transparent;
+            background-color: rgba(255,255,255,0.02);
             transition: transform 0.1s, background 0.2s;
             text-shadow: 0 1px 2px rgba(0,0,0,0.6);
             user-select: none;
             -webkit-user-select: none;
             min-width: 0;
             min-height: 0;
+            overflow: hidden;
         }
         .day-cell.empty { pointer-events: none; }
         .day-cell.other-month {
             color: #4a4a4a;
-            pointer-events: none;
+            font-size: 13px;
             font-weight: 400;
+            pointer-events: none;
             text-shadow: none;
+            background: transparent;
         }
-        .day-cell:active:not(.empty):not(.other-month) { transform: scale(0.92); }
+        .day-cell:active:not(.empty):not(.other-month) { transform: scale(0.93); }
         .day-cell.weekend { background: rgba(239, 68, 68, 0.06); }
 
+        /* Ячейки со сменами: стекло + градиент (светлее сверху -> темнее снизу) */
+        .day-cell.has-shift {
+            color: #fff;
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            border: 1px solid rgba(255,255,255,0.18);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.25), 0 2px 6px rgba(0,0,0,0.35);
+        }
+
         .day-cell.today {
-            box-shadow: inset 0 0 0 2px var(--accent), inset 0 0 10px rgba(168,85,247,0.45);
+            box-shadow: inset 0 0 0 2px var(--accent), inset 0 0 10px rgba(0,0,0,0.2);
             animation: todayPulse 2s ease-in-out infinite;
         }
         @keyframes todayPulse {
-            0%, 100% { box-shadow: inset 0 0 0 2px var(--accent), inset 0 0 10px rgba(168,85,247,0.45); }
-            50% { box-shadow: inset 0 0 0 2px var(--accent2), inset 0 0 14px rgba(14,165,233,0.7); }
+            0%, 100% { box-shadow: inset 0 0 0 2px var(--accent), inset 0 0 10px rgba(0,0,0,0.2); }
+            50%      { box-shadow: inset 0 0 0 2px var(--accent2), inset 0 0 14px rgba(0,0,0,0.15); }
         }
 
         .note-dot {
             position: absolute;
-            bottom: 2px;
+            bottom: 4px;
             width: 6px;
             height: 6px;
             border-radius: 50%;
@@ -140,10 +180,10 @@
             pointer-events: none;
         }
 
+        /* ===== Нижняя панель ===== */
         .bottom-panel {
             position: fixed;
-            bottom: 0;
-            left: 0;
+            bottom: 0; left: 0;
             width: 100%;
             background: rgba(26, 26, 26, 0.95);
             backdrop-filter: blur(20px);
@@ -155,12 +195,24 @@
             overflow-x: auto;
             z-index: 100;
         }
-        .summary-box { flex: 0 0 auto; min-width: 70px; text-align: center; background: var(--card-bg); padding: 8px 5px; border-radius: 8px; cursor: pointer; transition: transform 0.1s, background 0.2s; user-select: none; -webkit-user-select: none; }
+        .summary-box {
+            flex: 0 0 auto;
+            min-width: 70px;
+            text-align: center;
+            background: var(--card-bg);
+            padding: 8px 5px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.1s, background 0.2s;
+            user-select: none;
+            -webkit-user-select: none;
+        }
         .summary-box:hover { background: #333; }
         .summary-box:active { transform: scale(0.95); }
         .summary-title { font-size: 10px; color: var(--text-muted); white-space: nowrap; }
         .summary-value { font-size: 14px; font-weight: bold; margin-top: 2px; }
 
+        /* ===== Модалки ===== */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -184,39 +236,94 @@
             max-height: 90vh;
             overflow-y: auto;
             border-radius: 20px;
-            padding: 20px;
+            padding: 0 20px 20px 20px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.7);
         }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+
+        /* Шапка модалки красится цветом дня */
+        .modal-header-bar {
+            margin: 0 -20px 16px -20px;
+            padding: 16px 20px;
+            border-radius: 20px 20px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.25s;
+            background: rgba(255,255,255,0.06);
+        }
         .modal-date { font-size: 20px; font-weight: bold; }
         .btn-text { background: none; border: none; color: var(--text-muted); font-size: 18px; cursor: pointer; transition: transform 0.1s; }
         .btn-text:active { transform: scale(0.9); }
 
         .input-group { margin-bottom: 15px; position: relative; }
-        .input-group label { position: absolute; top: -8px; left: 10px; background: rgba(30, 30, 40, 0.95); padding: 0 4px; font-size: 12px; color: var(--text-muted); }
-        .input-group input { width: 100%; background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); color: white; padding: 12px; border-radius: 8px; font-size: 16px; outline: none; font-family: inherit; }
-        .input-group input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(14,165,233,0.2); }
+        .input-group label {
+            position: absolute;
+            top: -8px; left: 10px;
+            background: rgba(30, 30, 40, 0.95);
+            padding: 0 4px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        .input-group input {
+            width: 100%;
+            background: rgba(0,0,0,0.2);
+            border: 1px solid var(--border-color);
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 16px;
+            outline: none;
+            font-family: inherit;
+        }
+        .input-group input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(0,0,0,0.2); }
         .computed-sum { text-align: center; font-weight: bold; margin: 5px 0 15px 0; font-size: 14px; }
 
         .shift-types { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
-        .type-btn { flex: 1 1 30%; padding: 10px; background: transparent; border: 1px solid var(--border-color); color: white; border-radius: 8px; font-size: 14px; cursor: pointer; transition: transform 0.1s; font-family: inherit; }
+        .type-btn {
+            flex: 1 1 30%;
+            padding: 10px;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: white;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: transform 0.1s, background 0.2s;
+            font-family: inherit;
+        }
         .type-btn:active { transform: scale(0.95); }
 
-        .modal-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; }
+        .modal-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; gap: 8px; }
+
+        /* Кнопка «Сохранить» с заливкой */
         .btn-save {
-            background: var(--gradient);
+            position: relative;
+            overflow: hidden;
+            background: rgba(255,255,255,0.08);
             color: white;
             border: none;
-            padding: 10px 24px;
+            padding: 11px 24px;
             border-radius: 10px;
             font-size: 16px;
             cursor: pointer;
             font-weight: bold;
-            box-shadow: 0 4px 12px rgba(14,165,233,0.3);
-            transition: transform 0.1s;
             font-family: inherit;
+            transition: transform 0.1s;
+            min-width: 120px;
         }
-        .btn-save:active { transform: scale(0.95); }
+        .btn-save::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; bottom: 0;
+            width: 0%;
+            background: var(--gradient);
+            transition: width 0.45s ease;
+            z-index: 0;
+        }
+        .btn-save.saving::before { width: 100%; }
+        .btn-save span { position: relative; z-index: 1; }
+        .btn-save:active { transform: scale(0.96); }
+
         .btn-delete { color: #ef4444; font-size: 16px; background: none; border: none; cursor: pointer; font-weight: bold; transition: transform 0.1s; font-family: inherit; }
         .btn-delete:active { transform: scale(0.95); }
 
@@ -268,6 +375,19 @@
             margin-top: 18px;
         }
         .settings-section-title:first-child { margin-top: 0; }
+
+        /* Палитра акцентов */
+        .palette { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-bottom: 6px; }
+        .palette-swatch {
+            aspect-ratio: 1;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: transform 0.1s, border-color 0.2s;
+        }
+        .palette-swatch:active { transform: scale(0.9); }
+        .palette-swatch.active { border-color: #fff; box-shadow: 0 0 0 2px rgba(255,255,255,0.2); }
+
         .type-item { padding: 14px; border: 1px solid rgba(255,255,255,0.08); background: rgba(0,0,0,0.15); border-radius: 12px; margin-bottom: 12px; }
         .type-item-header { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 10px; }
         .type-name-input {
@@ -283,16 +403,8 @@
         }
         .type-name-input:focus { border-color: var(--accent); }
 
-        .color-picker-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 10px;
-        }
-        .color-picker-label {
-            font-size: 13px;
-            color: #aaa;
-        }
+        .color-picker-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+        .color-picker-label { font-size: 13px; color: #aaa; }
         .color-input {
             -webkit-appearance: none;
             -moz-appearance: none;
@@ -328,7 +440,6 @@
             background: var(--gradient);
             color: white;
             font-weight: bold;
-            box-shadow: 0 2px 8px rgba(14,165,233,0.3);
         }
 
         .icon-delete { background: transparent; border: none; color: #ef4444; font-size: 18px; cursor: pointer; padding: 4px 8px; transition: transform 0.1s; }
@@ -360,7 +471,6 @@
             font-weight: bold;
             cursor: pointer;
             margin-top: 5px;
-            box-shadow: 0 4px 14px rgba(14,165,233,0.35);
             font-family: inherit;
             transition: transform 0.1s;
         }
@@ -411,15 +521,10 @@
         }
         .toast-success { border-left: 3px solid #22c55e; }
         .toast-error { border-left: 3px solid #ef4444; }
-        .toast-info { border-left: 3px solid #0ea5e9; }
-        @keyframes toastIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        .toast-info { border-left: 3px solid var(--accent); }
+        @keyframes toastIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         .toast-out { animation: toastOut 0.3s ease-in forwards; }
-        @keyframes toastOut {
-            to { opacity: 0; transform: translateY(20px); }
-        }
+        @keyframes toastOut { to { opacity: 0; transform: translateY(20px); } }
 
         .confirm-overlay {
             position: fixed;
@@ -497,7 +602,7 @@
     <!-- Модалка редактирования дня -->
     <div class="modal-overlay" id="modal">
         <div class="modal">
-            <div class="modal-header">
+            <div class="modal-header-bar" id="modalHeaderBar">
                 <div class="modal-date" id="modalDate">10 ноября</div>
                 <button class="btn-text" onclick="closeModal()">✖</button>
             </div>
@@ -548,7 +653,7 @@
             <div class="modal-actions">
                 <button class="btn-delete" id="btnDelete" onclick="deleteShift()">Удалить</button>
                 <button class="btn-text" onclick="closeModal()">Отмена</button>
-                <button class="btn-save" onclick="saveShift()">Сохранить</button>
+                <button class="btn-save" id="btnSave" onclick="saveShift()"><span>Сохранить</span></button>
             </div>
         </div>
     </div>
@@ -556,7 +661,7 @@
     <!-- Модалка детализации -->
     <div class="modal-overlay" id="detailsModal">
         <div class="modal">
-            <div class="modal-header">
+            <div class="modal-header-bar">
                 <div class="modal-date" id="detailsTitle">Детали</div>
                 <button class="btn-text" onclick="closeDetailsModal()">✖</button>
             </div>
@@ -571,10 +676,13 @@
     <!-- Модалка настроек -->
     <div class="modal-overlay" id="settingsModal">
         <div class="modal">
-            <div class="modal-header">
+            <div class="modal-header-bar">
                 <div class="modal-date">⚙️ Настройки</div>
                 <button class="btn-text" onclick="closeSettings()">✖</button>
             </div>
+
+            <div class="settings-section-title">🎨 Акцентный цвет</div>
+            <div class="palette" id="paletteContainer"></div>
 
             <div class="settings-section-title">💰 Типы смен</div>
             <div id="typesList"></div>
@@ -582,8 +690,11 @@
             <button class="save-tpl-btn" onclick="resetTypes()">🔄 Сбросить к стандартным типам</button>
 
             <div class="settings-section-title">☁️ Синхронизация</div>
-            <button class="settings-sync-btn" onclick="syncToCloud()">☁️ Сохранить всё в облако</button>
+            <button class="settings-sync-btn" onclick="syncToCloud(true)">☁️ Сохранить всё в облако</button>
             <button class="settings-load-btn" onclick="loadFromCloud()">📥 Загрузить из облака</button>
+            <div style="font-size: 11px; color: var(--text-muted); margin-top: 8px; text-align: center;">
+                Данные сохраняются автоматически при каждом изменении.
+            </div>
         </div>
     </div>
 
@@ -597,15 +708,22 @@
         ];
         const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
 
+        const PALETTE = [
+            { name: 'Синий',       a: '#0ea5e9', b: '#a855f7' },
+            { name: 'Зелёный',     a: '#22c55e', b: '#0ea5e9' },
+            { name: 'Оранжевый',   a: '#f97316', b: '#ef4444' },
+            { name: 'Розовый',     a: '#ec4899', b: '#a855f7' },
+            { name: 'Фиолетовый',  a: '#a855f7', b: '#6366f1' },
+            { name: 'Красный',     a: '#ef4444', b: '#f97316' }
+        ];
+
+        const CHUNK_SIZE = 3500;
+
         let currentYear = new Date().getFullYear();
         let currentMonth = new Date().getMonth();
         let selectedDateStr = "";
 
-        // Флаг: была ли уже локальная база (если нет — первый запуск, грузим из облака)
-        const hasLocalShifts = localStorage.getItem('shiftsData') !== null;
-        const hasLocalTypes = localStorage.getItem('shiftTypes') !== null;
-
-        // Загружаем из ЛОКАЛЬНОГО хранилища
+        // === Загрузка локальных данных ===
         let shiftsData = {};
         try {
             const stored = localStorage.getItem('shiftsData');
@@ -622,12 +740,29 @@
             shiftTypes = JSON.parse(JSON.stringify(DEFAULT_TYPES));
         }
 
-        let tg = window.Telegram.WebApp;
+        let currentAccent = parseInt(localStorage.getItem('accentIndex') || '0', 10);
+        if (isNaN(currentAccent) || currentAccent < 0 || currentAccent >= PALETTE.length) currentAccent = 0;
+
+        const hasLocalShifts = localStorage.getItem('shiftsData') !== null;
+        const hasLocalTypes = localStorage.getItem('shiftTypes') !== null;
+
+        const tg = window.Telegram.WebApp;
         tg.expand();
         tg.ready();
-        try { tg.disableVerticalSwipes(); } catch (e) { console.warn('disableVerticalSwipes не поддерживается', e); }
+        try { tg.disableVerticalSwipes(); } catch (e) {}
 
-        // ===== УТИЛИТЫ =====
+        // ===== Акцент =====
+        function applyAccent(index) {
+            currentAccent = index;
+            const p = PALETTE[index] || PALETTE[0];
+            document.documentElement.style.setProperty('--accent', p.a);
+            document.documentElement.style.setProperty('--accent2', p.b);
+            document.documentElement.style.setProperty('--gradient', `linear-gradient(135deg, ${p.a}, ${p.b})`);
+            localStorage.setItem('accentIndex', String(index));
+            saveToCloudDebounced();
+        }
+
+        // ===== Утилиты =====
         function getType(id) { return shiftTypes.find(t => t.id === id) || null; }
         function getTypeColor(id) { const t = getType(id); return t ? t.color : '#888888'; }
         function hexToRgba(hex, alpha) {
@@ -637,6 +772,25 @@
             const b = parseInt(hex.slice(5,7), 16);
             return `rgba(${r},${g},${b},${alpha})`;
         }
+        function shade(hex, percent) {
+            // percent > 0 — светлее, < 0 — темнее
+            if (!hex || hex.length < 7) return hex;
+            const r = parseInt(hex.slice(1,3), 16);
+            const g = parseInt(hex.slice(3,5), 16);
+            const b = parseInt(hex.slice(5,7), 16);
+            const t = percent < 0 ? 0 : 255;
+            const p = Math.abs(percent) / 100;
+            const nr = Math.round((t - r) * p + r);
+            const ng = Math.round((t - g) * p + g);
+            const nb = Math.round((t - b) * p + b);
+            return '#' + [nr, ng, nb].map(x => x.toString(16).padStart(2,'0')).join('');
+        }
+        function gradientForColor(hex) {
+            const light = shade(hex, 35);
+            const dark  = shade(hex, -30);
+            return `linear-gradient(180deg, ${hexToRgba(light, 0.55)} 0%, ${hexToRgba(hex, 0.45)} 45%, ${hexToRgba(dark, 0.65)} 100%)`;
+        }
+
         function parseTime(timeStr) {
             if (!timeStr) return null;
             let t = timeStr.trim().replace('.', ':');
@@ -653,12 +807,11 @@
             return { h, m };
         }
 
-        // Миграция: пересчитывает суммы, если они потерялись
         function migrateData(data) {
             for (const dateStr in data) {
                 const d = data[dateStr];
                 if (!d) continue;
-                
+
                 if (d.types && d.types.includes('blue')) {
                     if (!d.totalHourly || d.totalHourly === 0) {
                         if (d.startTime && d.endTime && d.rate) {
@@ -673,7 +826,7 @@
                         }
                     }
                 }
-                
+
                 if (d.types && (d.types.includes('red') || d.types.includes('green') || d.types.includes('orange'))) {
                     if (!d.mySharePiece || d.mySharePiece === 0) {
                         if (d.pieceSum && d.piecePeople) {
@@ -683,39 +836,118 @@
                         }
                     }
                 }
-                
+
                 d.totalAmount = (d.totalHourly || 0) + (d.mySharePiece || 0);
             }
             return data;
         }
 
-        // Сохранение: и в localStorage, и в облако (для бэкапа)
-        function saveShifts() {
+        // ===== Сохранение (локально + облако, с дебаунсом) =====
+        let saveTimer = null;
+        let savingInFlight = false;
+        let pendingSaveAgain = false;
+
+        function persistLocal() {
             localStorage.setItem('shiftsData', JSON.stringify(shiftsData));
-            if (tg && tg.CloudStorage) {
-                tg.CloudStorage.setItem('shiftsData', JSON.stringify(shiftsData), () => {});
-            }
-        }
-        function saveTypes() {
             localStorage.setItem('shiftTypes', JSON.stringify(shiftTypes));
-            if (tg && tg.CloudStorage) {
-                tg.CloudStorage.setItem('shiftTypes', JSON.stringify(shiftTypes), () => {});
-            }
+            localStorage.setItem('shiftTemplates', localStorage.getItem('shiftTemplates') || '[]');
+            localStorage.setItem('accentIndex', String(currentAccent));
         }
-        function setTemplates(list) {
-            localStorage.setItem('shiftTemplates', JSON.stringify(list));
-            if (tg && tg.CloudStorage) {
-                tg.CloudStorage.setItem('shiftTemplates', JSON.stringify(list), () => {});
+
+        function saveToCloudDebounced() {
+            persistLocal();
+            if (saveTimer) clearTimeout(saveTimer);
+            saveTimer = setTimeout(() => { saveToCloud(false); }, 400);
+        }
+
+        function cloudAvailable() {
+            return !!(tg && tg.CloudStorage && typeof tg.CloudStorage.setItem === 'function');
+        }
+
+        function cloudSet(key, value) {
+            return new Promise((resolve, reject) => {
+                tg.CloudStorage.setItem(key, value, (err, ok) => {
+                    if (err) reject(new Error(typeof err === 'string' ? err : (err.message || 'cloud error')));
+                    else resolve(ok);
+                });
+            });
+        }
+        function cloudGet(key) {
+            return new Promise((resolve) => {
+                tg.CloudStorage.getItem(key, (err, value) => resolve(value));
+            });
+        }
+        function cloudRemove(key) {
+            return new Promise((resolve) => {
+                tg.CloudStorage.removeItem(key, () => resolve());
+            });
+        }
+
+        async function cloudSetChunked(baseKey, fullString) {
+            const total = Math.max(1, Math.ceil(fullString.length / CHUNK_SIZE));
+            for (let i = 0; i < total; i++) {
+                const part = fullString.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE);
+                await cloudSet(`${baseKey}_${i}`, part);
+            }
+            await cloudSet(`${baseKey}_meta`, String(total));
+            // удалить старые чанки
+            let i = total;
+            while (true) {
+                const old = await cloudGet(`${baseKey}_${i}`);
+                if (old == null) break;
+                await cloudRemove(`${baseKey}_${i}`);
+                i++;
             }
         }
 
-        function getMonthPrefix() { return `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`; }
-        function getTodayStr() {
-            const now = new Date();
-            return `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+        async function cloudGetChunked(baseKey) {
+            const meta = await cloudGet(`${baseKey}_meta`);
+            if (!meta) return null;
+            const total = parseInt(meta, 10);
+            if (!total || total < 1) return null;
+            let result = '';
+            for (let i = 0; i < total; i++) {
+                const part = await cloudGet(`${baseKey}_${i}`);
+                if (part == null) return null;
+                result += part;
+            }
+            return result;
         }
 
-        // ===== TOASTS И CONFIRM =====
+        async function saveToCloud(manual) {
+            if (!cloudAvailable()) {
+                if (manual) showToast('Облако доступно только внутри Telegram', 'error');
+                return;
+            }
+            if (savingInFlight) { pendingSaveAgain = true; return; }
+            savingInFlight = true;
+            try {
+                await cloudSetChunked('shiftsData', JSON.stringify(shiftsData));
+                await cloudSetChunked('shiftTypes', JSON.stringify(shiftTypes));
+                await cloudSetChunked('shiftTemplates', localStorage.getItem('shiftTemplates') || '[]');
+                await cloudSetChunked('accentIndex', String(currentAccent));
+                if (manual) showToast('Сохранено в облако');
+            } catch (e) {
+                if (manual) showToast('Ошибка сохранения: ' + (e && e.message ? e.message : 'неизвестно'), 'error');
+                else console.warn('cloud save failed', e);
+            } finally {
+                savingInFlight = false;
+                if (pendingSaveAgain) { pendingSaveAgain = false; saveToCloud(false); }
+            }
+        }
+
+        // «Флаш» при уходе со страницы
+        function flushNow() {
+            persistLocal();
+            if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
+            saveToCloud(false);
+        }
+        document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushNow(); });
+        window.addEventListener('beforeunload', flushNow);
+        window.addEventListener('pagehide', flushNow);
+        try { tg.onEvent('viewportChanged', () => { /* ничего, но держим событие живым */ }); } catch(e) {}
+
+        // ===== Toast / Confirm =====
         function showToast(message, type = 'success') {
             let container = document.getElementById('toastContainer');
             if (!container) {
@@ -761,7 +993,7 @@
             });
         }
 
-        // ===== РЕНДЕР =====
+        // ===== Рендер =====
         function renderAll() {
             renderCalendar();
             renderBottomPanel();
@@ -782,7 +1014,6 @@
             renderGrid(gridCur, currentYear, currentMonth, true);
             renderGrid(gridNext, nextDate.getFullYear(), nextDate.getMonth(), false);
 
-            // Ставим трек ровно на средний месяц
             const track = document.getElementById('calendarTrack');
             track.style.transition = 'none';
             track.style.transform = 'translateX(-100%)';
@@ -794,13 +1025,13 @@
             const firstDay = new Date(year, month, 1);
             const lastDay = new Date(year, month + 1, 0);
             const daysInMonth = lastDay.getDate();
-            
-            let startDayOfWeek = firstDay.getDay(); 
-            if (startDayOfWeek === 0) startDayOfWeek = 7; 
+
+            let startDayOfWeek = firstDay.getDay();
+            if (startDayOfWeek === 0) startDayOfWeek = 7;
 
             const beforeCount = startDayOfWeek - 1;
             const prevLastDay = new Date(year, month, 0).getDate();
-            
+
             for (let i = beforeCount; i >= 1; i--) {
                 const cell = document.createElement('div');
                 cell.className = 'day-cell other-month';
@@ -815,22 +1046,23 @@
                 const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
                 const data = shiftsData[dateStr];
 
-                const weekDay = (startDayOfWeek + d - 2) % 7; 
+                const weekDay = (startDayOfWeek + d - 2) % 7;
                 const isWeekend = weekDay === 5 || weekDay === 6;
                 if (isActive && isWeekend && !data) cell.classList.add('weekend');
 
                 if (data && data.types && data.types.length > 0) {
+                    cell.classList.add('has-shift');
                     const types = data.types;
                     if (types.length === 1) {
-                        cell.style.background = hexToRgba(getTypeColor(types[0]), 0.35);
-                        cell.style.border = '1px solid ' + getTypeColor(types[0]);
-                        cell.style.color = '#fff';
+                        cell.style.background = gradientForColor(getTypeColor(types[0]));
                     } else {
-                        const step = 100 / types.length;
-                        const stops = types.map((t, i) => `${hexToRgba(getTypeColor(t), 0.35)} ${i*step}% ${(i+1)*step}%`).join(', ');
-                        cell.style.background = `conic-gradient(${stops})`;
-                        cell.style.border = '1px solid ' + getTypeColor(types[0]);
-                        cell.style.color = '#fff';
+                        const stops = types.map((t, i) => {
+                            const step = 100 / types.length;
+                            const c = getTypeColor(t);
+                            return `${gradientForColor(c)} ${i*step}% ${(i+1)*step}%`;
+                        }).join(', ');
+                        // Несколько типов — просто перекрываем градиентами полосами
+                        cell.style.background = stops;
                     }
 
                     if (data.note && data.note.trim()) {
@@ -892,7 +1124,7 @@
             panel.appendChild(totalBox);
         }
 
-        // ===== СВАЙП (карусель с движением за пальцем) =====
+        // ===== Свайп =====
         let touchStartX = 0;
         let touchStartY = 0;
         let isSwiping = false;
@@ -914,13 +1146,9 @@
             const dy = e.touches[0].clientY - touchStartY;
 
             if (!isSwiping) {
-                if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 10) {
-                    isSwiping = true;
-                } else {
-                    return;
-                }
+                if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 10) isSwiping = true;
+                else return;
             }
-            // Двигаем трек относительно центра (текущего месяца)
             trackEl.style.transform = `translateX(calc(-100% + ${dx}px))`;
         }, { passive: true });
 
@@ -931,7 +1159,6 @@
             const threshold = window.innerWidth * 0.2;
 
             if (dx > threshold) {
-                // Свайп ВПРАВО -> прошлый месяц
                 lastSwipeTime = Date.now();
                 trackEl.style.transition = 'transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)';
                 trackEl.style.transform = 'translateX(0%)';
@@ -941,7 +1168,6 @@
                     renderAll();
                 }, 300);
             } else if (dx < -threshold) {
-                // Свайп ВЛЕВО -> следующий месяц
                 lastSwipeTime = Date.now();
                 trackEl.style.transition = 'transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)';
                 trackEl.style.transform = 'translateX(-200%)';
@@ -951,7 +1177,6 @@
                     renderAll();
                 }, 300);
             } else {
-                // Возврат на место
                 trackEl.style.transition = 'transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)';
                 trackEl.style.transform = 'translateX(-100%)';
             }
@@ -964,7 +1189,7 @@
             trackEl.style.transform = 'translateX(-100%)';
         });
 
-        // ===== МОДАЛКА ДНЯ =====
+        // ===== Модалка дня =====
         function openModal(dateStr, dayNum) {
             selectedDateStr = dateStr;
             document.getElementById('modalDate').innerText = `${dayNum} ${monthNames[currentMonth].toLowerCase()}`;
@@ -994,10 +1219,36 @@
 
             renderTypeButtons(activeIds);
             updateFieldVisibility();
+            updateModalHeader(activeIds);
             calculateHours();
             calculatePiece();
             renderTemplates();
+
+            const btn = document.getElementById('btnSave');
+            btn.classList.remove('saving');
+
             document.getElementById('modal').classList.add('active');
+        }
+
+        function updateModalHeader(activeIds) {
+            const bar = document.getElementById('modalHeaderBar');
+            if (!activeIds || activeIds.length === 0) {
+                bar.style.background = 'rgba(255,255,255,0.06)';
+                bar.style.color = 'var(--text-main)';
+                return;
+            }
+            if (activeIds.length === 1) {
+                const c = getTypeColor(activeIds[0]);
+                bar.style.background = `linear-gradient(135deg, ${hexToRgba(c, 0.75)}, ${hexToRgba(shade(c, -25), 0.85)})`;
+            } else {
+                const stops = activeIds.map((id, i) => {
+                    const c = getTypeColor(id);
+                    const step = 100 / activeIds.length;
+                    return `${hexToRgba(c, 0.8)} ${i*step}% ${(i+1)*step}%`;
+                }).join(', ');
+                bar.style.background = `linear-gradient(90deg, ${stops})`;
+            }
+            bar.style.color = '#fff';
         }
 
         function renderTypeButtons(activeIds) {
@@ -1010,9 +1261,9 @@
                 btn.innerText = type.name;
                 if (activeIds.includes(type.id)) {
                     btn.classList.add('active');
-                    btn.style.background = type.color;
+                    btn.style.background = gradientForColor(type.color);
                     btn.style.borderColor = type.color;
-                    if (type.color === '#ffffff') btn.style.color = '#1a1a1a';
+                    btn.style.color = '#fff';
                 }
                 btn.onclick = () => toggleType(btn);
                 container.appendChild(btn);
@@ -1023,15 +1274,17 @@
             btn.classList.toggle('active');
             const type = getType(btn.dataset.type);
             if (btn.classList.contains('active') && type) {
-                btn.style.background = type.color;
+                btn.style.background = gradientForColor(type.color);
                 btn.style.borderColor = type.color;
-                btn.style.color = (type.color === '#ffffff') ? '#1a1a1a' : '#ffffff';
+                btn.style.color = '#fff';
             } else {
                 btn.style.background = '';
                 btn.style.borderColor = '';
                 btn.style.color = '';
             }
             updateFieldVisibility();
+            const activeIds = Array.from(document.querySelectorAll('.type-btn.active')).map(b => b.dataset.type);
+            updateModalHeader(activeIds);
         }
 
         function updateFieldVisibility() {
@@ -1114,16 +1367,23 @@
             data.totalAmount = data.totalHourly + data.mySharePiece;
 
             shiftsData[selectedDateStr] = data;
-            saveShifts();
-            closeModal();
-            renderAll();
+            saveToCloudDebounced();
+
+            // Заливка кнопки, потом закрытие
+            const btn = document.getElementById('btnSave');
+            btn.classList.add('saving');
+            setTimeout(() => {
+                closeModal();
+                renderAll();
+                btn.classList.remove('saving');
+            }, 480);
         }
 
         async function deleteShift() {
             const ok = await showConfirm("Удалить смену за этот день?", { danger: true, okText: 'Удалить' });
             if (!ok) return;
             delete shiftsData[selectedDateStr];
-            saveShifts();
+            saveToCloudDebounced();
             closeModal();
             renderAll();
             showToast('Смена удалена', 'info');
@@ -1156,7 +1416,13 @@
             document.getElementById('monthTotal').innerText = `Общая: ${total.toFixed(2)} р.`;
         }
 
-        // ===== ДЕТАЛИЗАЦИЯ =====
+        function getMonthPrefix() { return `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`; }
+        function getTodayStr() {
+            const now = new Date();
+            return `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+        }
+
+        // ===== Детализация =====
         function openDetails(typeId) {
             const prefix = getMonthPrefix();
             const todayStr = getTodayStr();
@@ -1233,8 +1499,12 @@
             document.getElementById('detailsModal').classList.remove('active');
         }
 
-        // ===== ШАБЛОНЫ =====
+        // ===== Шаблоны =====
         function getTemplates() { return JSON.parse(localStorage.getItem('shiftTemplates') || '[]'); }
+        function setTemplates(list) {
+            localStorage.setItem('shiftTemplates', JSON.stringify(list));
+            saveToCloudDebounced();
+        }
 
         function renderTemplates() {
             const templates = getTemplates();
@@ -1282,9 +1552,9 @@
                     btn.classList.add('active');
                     const type = getType(tId);
                     if (type) {
-                        btn.style.background = type.color;
+                        btn.style.background = gradientForColor(type.color);
                         btn.style.borderColor = type.color;
-                        btn.style.color = (type.color === '#ffffff') ? '#1a1a1a' : '#ffffff';
+                        btn.style.color = '#fff';
                     }
                 }
             });
@@ -1298,6 +1568,9 @@
             updateFieldVisibility();
             calculateHours();
             calculatePiece();
+
+            const activeIds = Array.from(document.querySelectorAll('.type-btn.active')).map(b => b.dataset.type);
+            updateModalHeader(activeIds);
         }
 
         async function saveAsTemplate() {
@@ -1341,13 +1614,31 @@
             showToast('Шаблон удалён', 'info');
         }
 
-        // ===== НАСТРОЙКИ =====
+        // ===== Настройки =====
         function openSettings() {
+            renderPalette();
             renderSettingsTypes();
             document.getElementById('settingsModal').classList.add('active');
         }
         function closeSettings() {
             document.getElementById('settingsModal').classList.remove('active');
+        }
+
+        function renderPalette() {
+            const container = document.getElementById('paletteContainer');
+            container.innerHTML = '';
+            PALETTE.forEach((p, idx) => {
+                const sw = document.createElement('div');
+                sw.className = 'palette-swatch' + (idx === currentAccent ? ' active' : '');
+                sw.style.background = `linear-gradient(135deg, ${p.a}, ${p.b})`;
+                sw.title = p.name;
+                sw.onclick = () => {
+                    applyAccent(idx);
+                    renderPalette();
+                    renderAll();
+                };
+                container.appendChild(sw);
+            });
         }
 
         function renderSettingsTypes() {
@@ -1366,7 +1657,7 @@
                 nameInput.value = type.name;
                 nameInput.oninput = () => {
                     type.name = nameInput.value.trim() || 'Без названия';
-                    saveTypes();
+                    saveToCloudDebounced();
                     renderCalendar();
                     renderBottomPanel();
                     updateSummary();
@@ -1395,7 +1686,7 @@
                 colorInput.value = type.color;
                 colorInput.oninput = (e) => {
                     type.color = e.target.value;
-                    saveTypes();
+                    saveToCloudDebounced();
                     renderCalendar();
                     renderBottomPanel();
                     updateSummary();
@@ -1414,7 +1705,7 @@
                     btn.innerText = modeLabels[mode];
                     btn.onclick = () => {
                         type.mode = mode;
-                        saveTypes();
+                        saveToCloudDebounced();
                         renderAll();
                         renderSettingsTypes();
                     };
@@ -1431,7 +1722,7 @@
             if (!name || !name.trim()) return;
             const id = 'type_' + Date.now();
             shiftTypes.push({ id, name: name.trim(), color: '#888888', mode: 'piece', builtin: false });
-            saveTypes();
+            saveToCloudDebounced();
             renderSettingsTypes();
             renderAll();
             showToast('Тип добавлен');
@@ -1441,7 +1732,7 @@
             const ok = await showConfirm('Удалить этот тип? Дни, где он использовался, останутся, но тип пропадёт из списка и панели.', { danger: true, okText: 'Удалить' });
             if (!ok) return;
             shiftTypes = shiftTypes.filter(t => t.id !== id);
-            saveTypes();
+            saveToCloudDebounced();
             renderSettingsTypes();
             renderAll();
             showToast('Тип удалён', 'info');
@@ -1451,71 +1742,65 @@
             const ok = await showConfirm('Сбросить все типы к стандартным? Кастомные типы будут удалены, цвета сброшены.', { danger: true, okText: 'Сбросить' });
             if (!ok) return;
             shiftTypes = JSON.parse(JSON.stringify(DEFAULT_TYPES));
-            saveTypes();
+            saveToCloudDebounced();
             renderSettingsTypes();
             renderAll();
             showToast('Типы сброшены', 'info');
         }
 
-        // ===== ОБЛАКО =====
-        function cloudSet(key, value) {
-            return new Promise((resolve, reject) => {
-                tg.CloudStorage.setItem(key, value, (err, ok) => { if (err) reject(err); else resolve(ok); });
-            });
-        }
-        function cloudGet(key) {
-            return new Promise((resolve) => {
-                tg.CloudStorage.getItem(key, (err, value) => resolve(value));
-            });
-        }
-
-        async function syncToCloud() {
-            try {
-                await cloudSet('shiftsData', JSON.stringify(shiftsData));
-                await cloudSet('shiftTypes', JSON.stringify(shiftTypes));
-                await cloudSet('shiftTemplates', localStorage.getItem('shiftTemplates') || '[]');
-                showToast('Всё сохранено в облако');
-            } catch (e) {
-                showToast('Ошибка сохранения: ' + (e && e.message ? e.message : 'неизвестно'), 'error');
-            }
-        }
-
+        // ===== Загрузка из облака =====
         async function loadFromCloud() {
+            if (!cloudAvailable()) { showToast('Облако доступно только внутри Telegram', 'error'); return; }
             const ok = await showConfirm('Загрузить данные из облака? Локальные данные будут перезаписаны.');
             if (!ok) return;
             try {
-                const dataStr = await cloudGet('shiftsData');
-                const typesStr = await cloudGet('shiftTypes');
-                const tplStr = await cloudGet('shiftTemplates');
-                if (dataStr) { shiftsData = migrateData(JSON.parse(dataStr)); saveShifts(); }
-                if (typesStr) { shiftTypes = JSON.parse(typesStr); saveTypes(); }
+                const dataStr = await cloudGetChunked('shiftsData') || await cloudGet('shiftsData');
+                const typesStr = await cloudGetChunked('shiftTypes') || await cloudGet('shiftTypes');
+                const tplStr = await cloudGetChunked('shiftTemplates') || await cloudGet('shiftTemplates');
+                const accentStr = await cloudGetChunked('accentIndex') || await cloudGet('accentIndex');
+
+                if (dataStr) { shiftsData = migrateData(JSON.parse(dataStr)); }
+                if (typesStr) { shiftTypes = JSON.parse(typesStr); }
                 if (tplStr) { localStorage.setItem('shiftTemplates', tplStr); }
+                if (accentStr != null) {
+                    const idx = parseInt(accentStr, 10);
+                    if (!isNaN(idx) && idx >= 0 && idx < PALETTE.length) applyAccent(idx);
+                }
+                persistLocal();
                 renderAll();
                 renderSettingsTypes();
+                renderPalette();
                 showToast('Загружено из облака');
             } catch (e) {
                 showToast('Ошибка загрузки: ' + (e && e.message ? e.message : 'неизвестно'), 'error');
             }
         }
 
-        // ===== СТАРТ =====
+        // ===== Старт =====
+        applyAccent(currentAccent);
         renderAll();
 
-        // При ПЕРВОМ запуске на устройстве (нет локальных данных) — загружаем из облака.
-        // Если локальные данные уже есть — НЕ перезаписываем их облаком, чтобы не терять свежие записи.
+        // При первом запуске (нет локальных данных) — подтянуть из облака
         if (!hasLocalShifts || !hasLocalTypes) {
             (async () => {
+                if (!cloudAvailable()) return;
                 try {
                     if (!hasLocalShifts) {
-                        const dataStr = await cloudGet('shiftsData');
-                        if (dataStr) { shiftsData = migrateData(JSON.parse(dataStr)); saveShifts(); }
+                        const dataStr = await cloudGetChunked('shiftsData') || await cloudGet('shiftsData');
+                        if (dataStr) { shiftsData = migrateData(JSON.parse(dataStr)); }
                     }
                     if (!hasLocalTypes) {
-                        const typesStr = await cloudGet('shiftTypes');
-                        if (typesStr) { shiftTypes = JSON.parse(typesStr); saveTypes(); }
+                        const typesStr = await cloudGetChunked('shiftTypes') || await cloudGet('shiftTypes');
+                        if (typesStr) { shiftTypes = JSON.parse(typesStr); }
                     }
-                    const tplStr = await cloudGet('shiftTemplates');
+                    const tplStr = await cloudGetChunked('shiftTemplates') || await cloudGet('shiftTemplates');
                     if (tplStr) { localStorage.setItem('shiftTemplates', tplStr); }
+                    const accentStr = await cloudGetChunked('accentIndex') || await cloudGet('accentIndex');
+                    if (accentStr != null) {
+                        const idx = parseInt(accentStr, 10);
+                        if (!isNaN(idx) && idx >= 0 && idx < PALETTE.length) applyAccent(idx);
+                    }
+                    persistLocal();
                 } catch (e) {
                     console.error('Ошибка загрузки из облака', e);
                 }
